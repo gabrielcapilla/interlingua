@@ -1404,7 +1404,7 @@ p {
   background-color: var(--color-bg-2);
   border: var(--stroke-width-thick) solid var(--color-stroke-1);
   border-radius: var(--border-radius-large);
-  box-schadow: 4px 4px 0 0 var(--color-shadow);
+  box-shadow: 4px 4px 0 0 var(--color-shadow);
   overflow: hidden;
 }
 
