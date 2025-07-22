@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { useOllamaModels, useLanguageSelection, useTranslation } from '../../hooks';
 import { languageOptions } from '../../config/constants';
 import { TranslationIO } from '../../components/organisms/TranslationIO';
@@ -62,11 +62,32 @@ export const TranslationPage: React.FC = () => {
     setTranslatedText,
   } = useTranslation({ selectedModel, inputLanguage, outputLanguage });
 
-  const handleTranslateClick = () => {
-    if (inputText.trim()) {
-      translateText(inputText);
+  useEffect(() => {
+    // If there's no input text, clear everything and do nothing.
+    if (!inputText.trim()) {
+      setTranslatedText('');
+      setTranslationError(null);
+      return;
     }
-  };
+
+    // Do not proceed if no model is selected. The isTranslating check
+    // is handled within the translateText hook itself.
+    if (!selectedModel) {
+      return;
+    }
+
+    // Set a timer to trigger the translation.
+    const timerId = setTimeout(() => {
+      translateText(inputText);
+    }, 750); // 750ms debounce delay
+
+    // Cleanup function: if the component re-renders (e.g., user types again),
+    // clear the previously set timer.
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [inputText, selectedModel, translateText, setTranslatedText, setTranslationError]);
+
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -190,15 +211,8 @@ export const TranslationPage: React.FC = () => {
 
         <div className="action-buttons">
           {translationError && <p className="error-message" role="alert">{translationError}</p>}
-          <Button variant="secondary" onClick={handleLoadDocument}>
+          <Button variant="primary" onClick={handleLoadDocument}>
             Translate Document
-          </Button>
-          <Button
-            variant="primary"
-            onClick={handleTranslateClick}
-            disabled={isTranslating || !inputText.trim() || !selectedModel}
-          >
-            {isTranslating ? 'Translating...' : 'Translate'}
           </Button>
         </div>
 

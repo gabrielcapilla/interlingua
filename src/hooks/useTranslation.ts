@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { OllamaMessage } from '../types';
 import { languageOptions, translationSystemPrompt } from '../config/constants';
 import { fetchTranslation } from '../services/ollamaApi';
@@ -19,7 +19,7 @@ interface UseTranslationReturn {
 }
 
 /**
- * @description A custom hook that encapsulates the logic for translating text via the Ollama API. It manages the translated text state, loading status, and any errors returned from the API call.
+ * @description A custom hook that encapsulates the logic for translating text via the Ollama API. It manages the translated text state, loading status, and any errors returned from the API call. It's designed to be robust against race conditions and provides clear instructions to the AI model.
  * @param {UseTranslationProps} props - An object containing the dependencies for the translation logic.
  * @param {string} props.selectedModel - The name of the AI model to be used for the translation.
  * @param {string} props.inputLanguage - The language code of the source text (e.g., 'en', 'auto').
@@ -32,34 +32,48 @@ interface UseTranslationReturn {
  * @property {(text: string) => Promise<void>} translateText - An async function that takes a text string, constructs the API request, and initiates the translation.
  * @property {React.Dispatch<React.SetStateAction<string>>} setTranslatedText - State setter for the translated text, allowing parent components to clear it.
  * @interactions
- * - **React Hooks:** Uses `useState` to manage `translatedText`, `isTranslating`, and `translationError`. Uses `useCallback` to memoize the `translateText` function.
+ * - **React Hooks:** Uses `useState` to manage `translatedText`, `isTranslating`, and `translationError`. Uses `useCallback` to memoize the `translateText` function and `useRef` to prevent concurrent translation requests.
  * - **Services:** Calls the `fetchTranslation` function from `ollamaApi.ts` to execute the network request.
  * - **Constants:**
  *   - `languageOptions`: Used to find the full language label (e.g., 'English') from its code (e.g., 'en') for the prompt.
  *   - `translationSystemPrompt`: The detailed system instruction provided to the AI model.
  * - **Types:** Uses the `OllamaMessage` type to structure the payload for the API request.
+ * - **Prompt Engineering:**
+ *   - Provides a specific, clearer prompt when 'Auto-Detect' is selected to improve reliability.
+ *   - Adds a dialect clarification ("from Catalonia") to the prompt when "Catalan" is selected as a source or target language.
  */
 function useTranslation({ selectedModel, inputLanguage, outputLanguage }: UseTranslationProps): UseTranslationReturn {
   const [translatedText, setTranslatedText] = useState<string>('');
   const [isTranslating, setIsTranslating] = useState<boolean>(false);
   const [translationError, setTranslationError] = useState<string | null>(null);
+  const isTranslatingRef = useRef(false);
 
   const translateText = useCallback(async (text: string) => {
     const textToTranslate = text.trim();
-    if (!textToTranslate || !selectedModel || isTranslating) return;
+    if (!textToTranslate || !selectedModel || isTranslatingRef.current) return;
 
+    isTranslatingRef.current = true;
     setIsTranslating(true);
     setTranslationError(null);
     setTranslatedText('');
 
-    const outputLangLabel = languageOptions.find(l => l.value === outputLanguage)?.label || outputLanguage;
+    const getLanguageLabelWithDialect = (langCode: string): string => {
+      const lang = languageOptions.find(l => l.value === langCode);
+      if (!lang) return langCode;
+      if (lang.value === 'ca') {
+        return `${lang.label} (from Catalonia)`;
+      }
+      return lang.label;
+    };
+
+    const outputLangLabel = getLanguageLabelWithDialect(outputLanguage);
 
     let userMessageContent: string;
 
     if (inputLanguage === 'auto') {
-      userMessageContent = `Translate the following text to ${outputLangLabel}. You must first automatically detect the source language of the text.\n\n${textToTranslate}`;
+      userMessageContent = `Detect the language of the following text and then translate it to ${outputLangLabel}. Your response must contain ONLY the translated text, without any additional comments or explanations.\n\n${textToTranslate}`;
     } else {
-      const inputLangLabel = languageOptions.find(l => l.value === inputLanguage)?.label || inputLanguage;
+      const inputLangLabel = getLanguageLabelWithDialect(inputLanguage);
       userMessageContent = `Translate the following text from ${inputLangLabel} to ${outputLangLabel}:\n\n${textToTranslate}`;
     }
 
@@ -81,8 +95,9 @@ function useTranslation({ selectedModel, inputLanguage, outputLanguage }: UseTra
       setTranslatedText('');
     } finally {
       setIsTranslating(false);
+      isTranslatingRef.current = false;
     }
-  }, [selectedModel, inputLanguage, outputLanguage, isTranslating]);
+  }, [selectedModel, inputLanguage, outputLanguage, setTranslatedText, setTranslationError]);
 
   return { translatedText, isTranslating, translationError, setTranslationError, translateText, setTranslatedText };
 }
