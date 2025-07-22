@@ -2,21 +2,21 @@
  * =================================================================
  * Design Tokens
  * =================================================================
- * Este archivo define el sistema de diseño de la aplicación a través de variables CSS (design tokens).
- * Estos tokens controlan la tipografía, los colores, el espaciado y otros aspectos visuales
- * para garantizar la coherencia y facilitar el theming.
+ * This file defines the application's design system through CSS variables (design tokens).
+ * These tokens control typography, colors, spacing, and other visual aspects
+ * to ensure consistency and facilitate theming.
  */
 
 :root {
   /**
    * @group Typography
-   * @description Define el sistema tipográfico principal.
-   * Se utiliza una fuente monoespaciada para una estética técnica y consistente,
-   * con una pila de fallbacks robusta para maximizar la compatibilidad.
+   * @description Defines the main typography system.
+   * A monospaced font is used for a technical and consistent aesthetic,
+   * with a robust fallback stack to maximize compatibility.
    */
   --font-family-base: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --font-family-monospace: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  
+
   --font-size-100: 10px;
   --font-size-200: 12px;
   --font-size-300: 14px;
@@ -38,18 +38,18 @@
 
   /**
    * @group Shape & Borders
-   * @description Define el radio de los bordes para controlar la curvatura de las esquinas.
+   * @description Defines the border radius to control the curvature of corners.
    */
   --border-radius-none: 0px;
   --border-radius-small: 4px;
   --border-radius-medium: 6px;
   --border-radius-large: 8px;
   --border-radius-circular: 100%;
-  
+
   /**
    * @group Spacing
-   * @description Define una escala consistente para espaciado (márgenes, paddings, etc.)
-   * para crear layouts rítmicos y equilibrados.
+   * @description Defines a consistent scale for spacing (margins, paddings, etc.)
+   * to create rhythmic and balanced layouts.
    */
   --spacing-xs: 4px;
   --spacing-s: 8px;
@@ -60,21 +60,21 @@
 
   /**
    * @group Motion
-   * @description Define tokens para animaciones y transiciones.
+   * @description Defines tokens for animations and transitions.
    */
   --duration-fast: 150ms;
   --curve-easy-ease: cubic-bezier(0.33, 0, 0.67, 1);
-  
+
   /**
    * @group Strokes
-   * @description Define el grosor de los bordes y trazos.
+   * @description Defines the thickness of borders and strokes.
    */
   --stroke-width-thick: 2px;
-  
+
   /**
    * @group Color Palette (Light Theme)
    * Flexoki: https://github.com/kepano/flexoki
-   * @description Define la paleta de colores base para el tema claro.
+   * @description Defines the base color palette for the light theme.
    */
   --color-bg-1-light: #FFFCF0;
   --color-bg-2-light: #F2F0E5;
@@ -100,7 +100,7 @@
   /**
    * @group Color Palette (Dark Theme)
    * Flexoki: https://github.com/kepano/flexoki
-   * @description Define la paleta de colores base para el tema oscuro.
+   * @description Defines the base color palette for the dark theme.
    */
   --color-bg-1-dark: #100F0F;
   --color-bg-2-dark: #1C1B1A;
@@ -125,7 +125,7 @@
 
   /**
    * @group Assets
-   * @description Define assets como SVGs en línea utilizados en la interfaz.
+   * @description Defines assets like inline SVGs used in the interface.
    */
   --dropdown-arrow-light: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M2%204l4%204%204-4z%22%20fill%3D%22%2523100F0F%22%2F%3E%3C%2Fsvg%3E');
   --dropdown-arrow-dark: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M2%204l4%204%204-4z%22%20fill%3D%22%2523CECDC3%22%2F%3E%3C%2Fsvg%3E');
@@ -133,9 +133,9 @@
 
 /**
  * @section Semantic Color Tokens
- * @description Estos tokens asignan la paleta de colores a roles semánticos en la UI.
- * Esto permite un cambio de tema sencillo al reasignar estas variables.
- * El tema claro se aplica por defecto.
+ * @description These tokens assign the color palette to semantic roles in the UI.
+ * This allows for easy theme switching by reassigning these variables.
+ * The light theme is applied by default.
  */
 :root {
   --color-bg-1: var(--color-bg-1-light);
@@ -164,8 +164,8 @@
 
 /**
  * @section Dark Theme
- * @description Sobrescribe los tokens de color semánticos cuando el sistema del usuario
- * prefiere un esquema de color oscuro.
+ * @description Overrides the semantic color tokens when the user's system
+ * prefers a dark color scheme.
  */
 @media (prefers-color-scheme: dark) {
   :root {
@@ -198,7 +198,7 @@
  * =================================================================
  * Global Styles
  * =================================================================
- * Estilos base para toda la aplicación.
+ * Base styles for the entire application.
  */
 body {
   font-family: var(--font-family-base);
@@ -217,11 +217,19 @@ body {
   width: 100%;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-h1, h2, h3, h4, h5, h6, p {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
   margin: 0;
   font-weight: var(--font-weight-regular);
 }
@@ -230,7 +238,7 @@ h1, h2, h3, h4, h5, h6, p {
  * =================================================================
  * Component Styles
  * =================================================================
- * Estilos para componentes de UI individuales, siguiendo una metodología BEM.
+ * Styles for individual UI components, following a BEM methodology.
  */
 
 
@@ -246,19 +254,19 @@ h1, h2, h3, h4, h5, h6, p {
   cursor: pointer;
   box-sizing: border-box;
   transition: background-color var(--duration-fast) var(--curve-easy-ease),
-              border-color var(--duration-fast) var(--curve-easy-ease),
-              box-shadow var(--duration-fast) var(--curve-easy-ease),
-              color var(--duration-fast) var(--curve-easy-ease),
-              transform var(--duration-fast) var(--curve-easy-ease);
+    border-color var(--duration-fast) var(--curve-easy-ease),
+    box-shadow var(--duration-fast) var(--curve-easy-ease),
+    color var(--duration-fast) var(--curve-easy-ease),
+    transform var(--duration-fast) var(--curve-easy-ease);
   border-radius: var(--border-radius-medium);
 }
 
 .button:hover:not(:disabled) {
   transform: translate(-4px, -4px);
   box-shadow: 4px 4px 0 0 var(--color-accent-yellow),
-              6px 6px 0 0 var(--color-shadow),
-              8px 8px 0 0 var(--color-accent-red),
-              10px 10px 0 0 var(--color-shadow);
+    6px 6px 0 0 var(--color-shadow),
+    8px 8px 0 0 var(--color-accent-red),
+    10px 10px 0 0 var(--color-shadow);
 }
 
 .button:active:not(:disabled) {
@@ -287,9 +295,11 @@ h1, h2, h3, h4, h5, h6, p {
   border: var(--stroke-width-thick) solid var(--color-stroke-1);
   box-shadow: 4px 4px 0 0 var(--color-shadow);
 }
+
 .button--primary:hover:not(:disabled) {
   background-color: var(--color-brand-bg-hover);
 }
+
 .button--primary:disabled {
   background-color: var(--color-brand-bg-disabled);
   color: var(--color-text-disabled);
@@ -302,6 +312,7 @@ h1, h2, h3, h4, h5, h6, p {
   border: var(--stroke-width-thick) solid var(--color-stroke-1);
   box-shadow: 4px 4px 0 0 var(--color-shadow);
 }
+
 .button--secondary:hover:not(:disabled) {
   background-color: var(--color-bg-hover);
 }
@@ -312,6 +323,7 @@ h1, h2, h3, h4, h5, h6, p {
   border: var(--stroke-width-thick) solid transparent;
   box-shadow: none;
 }
+
 .button--subtle:hover:not(:disabled) {
   background-color: var(--color-subtle-bg-hover);
   border-color: var(--color-stroke-1);
@@ -323,23 +335,31 @@ h1, h2, h3, h4, h5, h6, p {
   border: var(--stroke-width-thick) solid transparent;
   box-shadow: none;
 }
+
 .button--transparent:hover:not(:disabled) {
   background-color: var(--color-transparent-bg-hover);
   transform: none;
   box-shadow: none;
 }
+
 .button--transparent:active:not(:disabled) {
   transform: none;
 }
 
 /* Shape & IconOnly */
-.button--shape-circular { border-radius: var(--border-radius-medium); }
-.button--shape-square { border-radius: var(--border-radius-small); }
+.button--shape-circular {
+  border-radius: var(--border-radius-medium);
+}
+
+.button--shape-square {
+  border-radius: var(--border-radius-small);
+}
 
 .button--icon-only {
   padding: var(--spacing-s);
   min-width: unset;
 }
+
 .button--icon-only.button--shape-circular,
 .button--icon-only.button--shape-square {
   width: 36px;
@@ -374,9 +394,9 @@ h1, h2, h3, h4, h5, h6, p {
   background-color: var(--color-bg-hover);
   transform: translate(-4px, -4px);
   box-shadow: 4px 4px 0 0 var(--color-accent-yellow),
-              6px 6px 0 0 var(--color-shadow),
-              8px 8px 0 0 var(--color-accent-red),
-              10px 10px 0 0 var(--color-shadow);
+    6px 6px 0 0 var(--color-shadow),
+    8px 8px 0 0 var(--color-accent-red),
+    10px 10px 0 0 var(--color-shadow);
 }
 
 .dropdown:focus-visible:not(:disabled) {
@@ -408,9 +428,19 @@ h1, h2, h3, h4, h5, h6, p {
 
 /* Component: ThinkingIndicator */
 @keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.75); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(0.75);
+  }
 }
+
 .thinking-indicator {
   display: flex;
   align-items: center;
@@ -418,6 +448,7 @@ h1, h2, h3, h4, h5, h6, p {
   height: var(--line-height-300);
   padding: var(--spacing-s) 0;
 }
+
 .thinking-indicator__dot {
   background-color: var(--color-text-3);
   width: 8px;
@@ -426,9 +457,18 @@ h1, h2, h3, h4, h5, h6, p {
   margin: 0 2px;
   animation: pulse 1.2s infinite ease-in-out;
 }
-.thinking-indicator__dot:nth-child(1) { animation-delay: -0.32s; }
-.thinking-indicator__dot:nth-child(2) { animation-delay: -0.16s; }
-.thinking-indicator__dot:nth-child(3) { animation-delay: 0s; }
+
+.thinking-indicator__dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.thinking-indicator__dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.thinking-indicator__dot:nth-child(3) {
+  animation-delay: 0s;
+}
 
 /*
  * =================================================================
@@ -446,6 +486,7 @@ h1, h2, h3, h4, h5, h6, p {
   border-bottom: var(--stroke-width-thick) solid var(--color-stroke-1);
   flex-shrink: 0;
 }
+
 .app-header__title {
   font-size: var(--font-size-500);
   font-weight: var(--font-weight-semibold);
@@ -458,27 +499,28 @@ h1, h2, h3, h4, h5, h6, p {
 .page-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
   width: 100%;
   background-color: var(--color-bg-1);
   color: var(--color-text-1);
   padding: var(--spacing-l);
   gap: var(--spacing-l);
-  overflow: hidden;
 }
+
 .main-content {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-l);
-  height: 100%;
   min-height: 0;
 }
+
 .controls-container {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-l);
 }
+
 .language-bar {
   display: flex;
   justify-content: space-between;
@@ -486,6 +528,7 @@ h1, h2, h3, h4, h5, h6, p {
   gap: var(--spacing-m);
   flex-wrap: wrap;
 }
+
 .language-selectors {
   display: flex;
   flex: 3;
@@ -494,19 +537,23 @@ h1, h2, h3, h4, h5, h6, p {
   align-items: center;
   gap: var(--spacing-m);
 }
+
 .language-selectors__dropdown {
   flex: 1;
 }
+
 .model-selector__dropdown {
   flex: 2;
   min-width: 200px;
 }
+
 .action-buttons {
   display: flex;
   justify-content: flex-end;
   align-items: center;
   gap: var(--spacing-m);
 }
+
 .error-message {
   color: var(--color-accent-red);
   font-size: var(--font-size-300);
@@ -520,9 +567,9 @@ h1, h2, h3, h4, h5, h6, p {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--spacing-l);
-  height: 100%;
   min-height: 300px;
 }
+
 .translation-io__panel {
   display: flex;
   flex-direction: column;
@@ -534,6 +581,7 @@ h1, h2, h3, h4, h5, h6, p {
   min-height: 0;
   overflow: hidden;
 }
+
 .translation-io__header {
   padding: var(--spacing-s) var(--spacing-m);
   border-bottom: var(--stroke-width-thick) solid var(--color-stroke-1);
@@ -542,17 +590,20 @@ h1, h2, h3, h4, h5, h6, p {
   font-weight: var(--font-weight-bold);
   flex-shrink: 0;
 }
+
 .translation-io__text-area-wrapper {
   flex-grow: 1;
   position: relative;
   background-color: var(--color-bg-2);
 }
+
 .translation-io__thinking-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100%;
 }
+
 .translation-io__text-area {
   width: 100%;
   height: 100%;
@@ -566,16 +617,20 @@ h1, h2, h3, h4, h5, h6, p {
   font-size: var(--font-size-400);
   line-height: var(--line-height-400);
 }
+
 .translation-io__text-area:focus {
   outline: none;
 }
+
 .translation-io__text-area::placeholder {
   color: var(--color-text-3);
 }
+
 .translation-io__text-area:disabled {
   background-color: var(--color-bg-disabled);
   color: var(--color-text-disabled);
 }
+
 .translation-io__footer {
   display: flex;
   justify-content: space-between;
@@ -586,11 +641,13 @@ h1, h2, h3, h4, h5, h6, p {
   color: var(--color-text-3);
   flex-shrink: 0;
 }
+
 .translation-io__copy-button-wrapper {
   position: absolute;
   bottom: var(--spacing-s);
   right: var(--spacing-s);
 }
+
 .translation-io__clear-button {
   position: absolute;
   top: var(--spacing-s);
@@ -599,6 +656,7 @@ h1, h2, h3, h4, h5, h6, p {
   opacity: 0;
   transition: all var(--duration-fast) var(--curve-easy-ease);
 }
+
 .translation-io__text-area-wrapper:hover .translation-io__clear-button {
   visibility: visible;
   opacity: 1;
@@ -662,7 +720,7 @@ h1, h2, h3, h4, h5, h6, p {
     align-items: stretch;
     gap: var(--spacing-l);
   }
-  
+
   .model-selector__dropdown {
     width: 100%;
     min-width: unset;
@@ -695,7 +753,7 @@ h1, h2, h3, h4, h5, h6, p {
 
   .language-selectors__dropdown {
     width: 100%;
-    min-width: unset; 
+    min-width: unset;
   }
 
   .action-buttons {
