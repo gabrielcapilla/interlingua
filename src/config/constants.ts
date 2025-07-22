@@ -20,9 +20,12 @@ export const languageOptions: DropdownOption[] = [
 export const LOCAL_STORAGE_INPUT_LANG_KEY = 'userSelectedInputLanguage';
 export const LOCAL_STORAGE_OUTPUT_LANG_KEY = 'userSelectedOutputLanguage';
 export const OLLAMA_MODEL_STORAGE_KEY = 'ollamaSelectedModel';
+export const FAVORITE_OLLAMA_MODEL_KEY = 'ollamaFavoriteModel';
 
 export const OLLAMA_API_BASE_URL = 'http://localhost:11434/api';
 export const OLLAMA_CONNECTION_ERROR_PREFIX = 'Could not connect to Ollama.';
+
+export const MAX_INPUT_CHARACTERS = 6400;
 
 export const translationSystemPrompt = `You are an expert translation engine.
 Your primary task is to translate user-provided text.
