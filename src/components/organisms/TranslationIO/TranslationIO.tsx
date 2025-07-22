@@ -1,17 +1,20 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { ThinkingIndicator } from '../../atoms/ThinkingIndicator';
 import { Button } from '../../atoms/Button';
+import { useToast } from '../../../hooks/useToast';
 
 interface TranslationIOProps {
-    inputText: string;
-    setInputText: (text: string) => void;
-    translatedText: string;
-    isTranslating: boolean;
-    inputLanguageLabel: string;
-    outputLanguageLabel: string;
-    characterCount: number;
-    wordCount: number;
-    onClearInput: () => void;
+  inputText: string;
+  setInputText: (text: string) => void;
+  translatedText: string;
+  isTranslating: boolean;
+  inputLanguageLabel: string;
+  outputLanguageLabel: string;
+  characterCount: number;
+  wordCount: number;
+  onClearInput: () => void;
+  isOverLimit: boolean;
+  maxCharacters: number;
 }
 
 /**
@@ -26,40 +29,54 @@ interface TranslationIOProps {
  * @param {number} props.characterCount - The character count of the input text to display in the footer.
  * @param {number} props.wordCount - The word count of the input text to display in the footer.
  * @param {() => void} props.onClearInput - Callback to clear the input text and translation state in the parent.
+ * @param {boolean} props.isOverLimit - Flag indicating if the character limit has been exceeded.
+ * @param {number} props.maxCharacters - The maximum number of characters allowed.
  * @returns {React.ReactElement} The rendered input/output component.
  * @interactions
  * - **Parent State:** This is a controlled component. It receives its primary data (`inputText`, `translatedText`, etc.) as props and communicates user actions back to the parent (`TranslationPage`) via callbacks (`setInputText`, `onClearInput`).
  * - **Child Components:**
  *   - `ThinkingIndicator`: Rendered in the output panel when `isTranslating` is true.
  *   - `Button`: Used for the "Clear" and "Copy" actions.
- * - **Local State:** Uses a local `useState` hook (`copied`) to manage the "Copied!" confirmation text on the copy button for better UI feedback encapsulation.
+ * - **Hooks:** Uses the `useToast` hook to provide user feedback when the copy action is successful or fails.
  * - **Browser API:** Uses `navigator.clipboard.writeText` to copy the translated text to the user's clipboard.
  * - **CSS:** Relies on the `.translation-io` BEM block in `index.css` for its entire layout and styling, including panels, headers, text areas, and footers.
  */
 export const TranslationIO: React.FC<TranslationIOProps> = ({
-    inputText,
-    setInputText,
-    translatedText,
-    isTranslating,
-    inputLanguageLabel,
-    outputLanguageLabel,
-    characterCount,
-    wordCount,
-    onClearInput,
+  inputText,
+  setInputText,
+  translatedText,
+  isTranslating,
+  inputLanguageLabel,
+  outputLanguageLabel,
+  characterCount,
+  wordCount,
+  onClearInput,
+  isOverLimit,
+  maxCharacters,
 }) => {
-    const [copied, setCopied] = React.useState(false);
+    const { addToast } = useToast();
 
-    const handleCopy = () => {
+    const handleCopy = useCallback(() => {
         if (!translatedText) return;
         navigator.clipboard.writeText(translatedText).then(() => {
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
+            addToast({
+                variant: 'success',
+                title: 'Success',
+                message: 'Translated text copied to clipboard.',
+            });
+        }).catch(err => {
+            addToast({
+                variant: 'error',
+                title: 'Copy Failed',
+                message: 'Could not copy text to clipboard.',
+            });
+            console.error('Failed to copy text: ', err);
         });
-    };
+    }, [translatedText, addToast]);
 
     return (
         <div className="translation-io">
-            <div className="translation-io__panel">
+            <div className={`translation-io__panel ${isOverLimit ? 'translation-io__panel--error' : ''}`}>
                 <div className="translation-io__header">{inputLanguageLabel}</div>
                 <div className="translation-io__text-area-wrapper">
                     <textarea
@@ -83,37 +100,39 @@ export const TranslationIO: React.FC<TranslationIOProps> = ({
                     )}
                 </div>
                 <div className="translation-io__footer">
-                    <span>{characterCount} characters</span>
+                    <span className={isOverLimit ? 'translation-io__char-count--error' : ''}>
+                        {characterCount.toLocaleString()} / {maxCharacters.toLocaleString()}
+                    </span>
                     <span>{wordCount} words</span>
                 </div>
             </div>
             <div className="translation-io__panel">
                 <div className="translation-io__header">{outputLanguageLabel}</div>
                 <div className="translation-io__text-area-wrapper">
-                    {isTranslating ? (
-                        <div className="translation-io__thinking-wrapper">
-                            <ThinkingIndicator />
-                        </div>
-                    ) : (
-                        <textarea
-                            className="translation-io__text-area"
-                            value={translatedText}
-                            readOnly
-                            placeholder="Translation"
-                            aria-label="Translated text"
-                        />
-                    )}
-                    {!isTranslating && translatedText && (
-                        <div className="translation-io__copy-button-wrapper">
-                            <Button
-                                variant="secondary"
-                                onClick={handleCopy}
-                                aria-label="Copy translated text"
-                            >
-                                {copied ? 'Copied!' : 'Copy'}
-                            </Button>
-                        </div>
-                    )}
+                {isTranslating ? (
+                    <div className="translation-io__thinking-wrapper">
+                        <ThinkingIndicator />
+                    </div>
+                ) : (
+                    <textarea
+                        className="translation-io__text-area"
+                        value={translatedText}
+                        readOnly
+                        placeholder="Translation"
+                        aria-label="Translated text"
+                    />
+                )}
+                {!isTranslating && translatedText && (
+                    <div className="translation-io__copy-button-wrapper">
+                        <Button 
+                            variant="secondary" 
+                            onClick={handleCopy} 
+                            aria-label="Copy translated text"
+                        >
+                            Copy
+                        </Button>
+                    </div>
+                )}
                 </div>
             </div>
         </div>
