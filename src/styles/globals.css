@@ -1,9 +1,3 @@
-/*
- * =================================================================
- * Global Styles
- * =================================================================
- * Base styles for the entire application.
- */
 body {
   font-family: var(--font-family-base);
   margin: 0;

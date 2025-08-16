@@ -1,8 +1,3 @@
-/*
- * =================================================================
- * Layout: TranslationPage / Showcase Page
- * =================================================================
- */
 .page-container {
   display: flex;
   flex-direction: column;
@@ -49,10 +44,6 @@
   flex: 1;
 }
 
-/*
- * Redesigned Model Selector as a single, cohesive control group
- * to align with the Neo-Brutalist aesthetic.
- */
 .model-selector {
   display: flex;
   flex: 2;
@@ -66,10 +57,8 @@
   position: relative;
 }
 
-/* Hover & Focus-within effects for the entire group */
 .model-selector:hover:not(.model-selector_disabled),
 .model-selector:focus-within:not(.model-selector_disabled) {
-  /* Elevate the stacking context to ensure the dropdown appears above subsequent content. */
   z-index: 10;
   border-color: var(--color-stroke-hover);
   transform: translate(-4px, -4px);
@@ -84,13 +73,11 @@
   border-right-color: var(--color-stroke-hover);
 }
 
-/* Dropdown specific styles within the group */
 .model-selector_dropdown {
   flex-grow: 1;
 }
 
 .model-selector_dropdown .custom-dropdown_trigger {
-  /* Override default .custom-dropdown_trigger styles */
   border: none;
   box-shadow: none;
   border-radius: 0;
@@ -100,7 +87,6 @@
   border-right: var(--stroke-width-thick) solid var(--color-stroke-1);
 }
 
-/* Override its individual hover/focus effects */
 .model-selector_dropdown .custom-dropdown_trigger:hover:not(:disabled),
 .model-selector_dropdown .custom-dropdown_trigger:focus-visible:not(:disabled) {
   transform: none;
@@ -114,7 +100,6 @@
   border-right-color: var(--color-stroke-hover);
 }
 
-/* Favorite button specific styles */
 .model-selector_favorite-button {
   flex-shrink: 0;
   width: 44px;
@@ -122,12 +107,10 @@
   /* Stretch */
   font-size: var(--font-size-500);
   color: var(--color-accent-yellow);
-  /* Explicitly center content and remove inherited padding */
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  /* Override .button styles */
   border: none;
   box-shadow: none;
   border-radius: 0;
@@ -135,19 +118,16 @@
     transform var(--duration-fast) var(--curve-easy-ease);
 }
 
-/* Override .button_transparent hover effect to only change background */
 .model-selector_favorite-button.button_transparent:hover:not(:disabled) {
   transform: none;
   box-shadow: none;
   background-color: var(--color-subtle-bg-hover);
 }
 
-/* Keep a subtle active state */
 .model-selector_favorite-button:active:not(:disabled) {
   transform: scale(0.9);
 }
 
-/* Disabled state for the whole group */
 .model-selector.model-selector_disabled {
   background-color: var(--color-bg-disabled);
   border-color: var(--color-stroke-disabled);
@@ -179,7 +159,6 @@
   flex-grow: 1;
 }
 
-/* Responsive styles */
 @media (max-width: 768px) {
   .page-container {
     padding: var(--spacing-m);

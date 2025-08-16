@@ -1,8 +1,3 @@
-/*
- * =================================================================
- * Component: TranslationIO
- * =================================================================
- */
 .translation-io {
   flex-grow: 1;
   display: grid;
@@ -113,7 +108,6 @@
   opacity: 1;
 }
 
-/* Responsive styles */
 @media (max-width: 768px) {
   .translation-io {
     grid-template-columns: 1fr;

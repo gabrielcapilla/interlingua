@@ -1,8 +1,3 @@
-/*
- * =================================================================
- * Component: Button
- * =================================================================
- */
 .button {
   font-family: var(--font-family-base);
   font-size: var(--font-size-300);
@@ -48,7 +43,6 @@
   border-color: var(--color-stroke-disabled);
 }
 
-/* Variants */
 .button_primary {
   background-color: var(--color-brand-bg);
   color: var(--color-text-inverted);
@@ -106,7 +100,6 @@
   transform: none;
 }
 
-/* Shape & IconOnly */
 .button_shape-circular {
   border-radius: var(--border-radius-medium);
 }
