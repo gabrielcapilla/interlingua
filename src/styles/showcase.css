@@ -1,0 +1,43 @@
+/*
+ * =================================================================
+ * Component: Showcase Sections
+ * =================================================================
+ */
+.showcase-section {
+  padding: var(--spacing-l);
+  border: var(--stroke-width-thick) solid var(--color-stroke-1);
+  border-radius: var(--border-radius-large);
+  box-shadow: 4px 4px 0 0 var(--color-shadow);
+  background-color: var(--color-bg-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-l);
+}
+
+.showcase-section_title {
+  font-size: var(--font-size-500);
+  font-weight: var(--font-weight-semibold);
+  border-bottom: var(--stroke-width-thick) solid var(--color-stroke-1);
+  padding-bottom: var(--spacing-m);
+  margin-bottom: var(--spacing-s);
+}
+
+.showcase-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-l);
+  align-items: center;
+}
+
+.showcase-grid_vertical {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-xl);
+}
+
+.showcase-section>p {
+  color: var(--color-text-2);
+  font-size: var(--font-size-300);
+  margin-top: calc(-1 * var(--spacing-m));
+  /* Pull it closer to the title */
+}

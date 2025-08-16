@@ -76,11 +76,11 @@ export const TranslationIO: React.FC<TranslationIOProps> = ({
 
     return (
         <div className="translation-io">
-            <div className={`translation-io__panel ${isOverLimit ? 'translation-io__panel--error' : ''}`}>
-                <div className="translation-io__header">{inputLanguageLabel}</div>
-                <div className="translation-io__text-area-wrapper">
+            <div className={`translation-io_panel ${isOverLimit ? 'translation-io_panel-error' : ''}`}>
+                <div className="translation-io_header">{inputLanguageLabel}</div>
+                <div className="translation-io_text-area-wrapper">
                     <textarea
-                        className="translation-io__text-area"
+                        className="translation-io_text-area"
                         value={inputText}
                         onChange={(e) => setInputText(e.target.value)}
                         placeholder="Enter text..."
@@ -93,29 +93,29 @@ export const TranslationIO: React.FC<TranslationIOProps> = ({
                             buttonShape="circular"
                             onClick={onClearInput}
                             title="Clear input text"
-                            className="translation-io__clear-button"
+                            className="translation-io_clear-button"
                         >
                             ✕
                         </Button>
                     )}
                 </div>
-                <div className="translation-io__footer">
-                    <span className={isOverLimit ? 'translation-io__char-count--error' : ''}>
+                <div className="translation-io_footer">
+                    <span className={isOverLimit ? 'translation-io_char-count-error' : ''}>
                         {characterCount.toLocaleString()} / {maxCharacters.toLocaleString()}
                     </span>
                     <span>{wordCount} words</span>
                 </div>
             </div>
-            <div className="translation-io__panel">
-                <div className="translation-io__header">{outputLanguageLabel}</div>
-                <div className="translation-io__text-area-wrapper">
+            <div className="translation-io_panel">
+                <div className="translation-io_header">{outputLanguageLabel}</div>
+                <div className="translation-io_text-area-wrapper">
                 {isTranslating ? (
-                    <div className="translation-io__thinking-wrapper">
+                    <div className="translation-io_thinking-wrapper">
                         <ThinkingIndicator />
                     </div>
                 ) : (
                     <textarea
-                        className="translation-io__text-area"
+                        className="translation-io_text-area"
                         value={translatedText}
                         readOnly
                         placeholder="Translation"
@@ -123,7 +123,7 @@ export const TranslationIO: React.FC<TranslationIOProps> = ({
                     />
                 )}
                 {!isTranslating && translatedText && (
-                    <div className="translation-io__copy-button-wrapper">
+                    <div className="translation-io_copy-button-wrapper">
                         <Button 
                             variant="secondary" 
                             onClick={handleCopy} 

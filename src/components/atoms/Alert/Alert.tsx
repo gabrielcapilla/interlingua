@@ -23,22 +23,22 @@ const variantIcons: Record<AlertVariant, string> = {
  * @param {string} [props.className] - Optional additional CSS classes to apply to the component.
  * @returns {React.ReactElement} The rendered alert component.
  * @interactions
- * - **CSS:** Uses the `.alert` BEM block and its modifiers (`.alert--{variant}`) from `index.css`.
+ * - **CSS:** Uses the `.alert` BEM block and its modifiers (`.alert_{variant}`) from `index.css`.
  */
 export const Alert: React.FC<AlertProps> = ({
   variant = 'info',
   children,
   className,
 }) => {
-  const classNames = ['alert', `alert--${variant}`, className].filter(Boolean).join(' ');
+  const classNames = ['alert', `alert_${variant}`, className].filter(Boolean).join(' ');
   const icon = variantIcons[variant];
 
   return (
     <div className={classNames} role="alert">
-      <span className="alert__icon" aria-hidden="true">
+      <span className="alert_icon" aria-hidden="true">
         {icon}
       </span>
-      <div className="alert__message">{children}</div>
+      <div className="alert_message">{children}</div>
     </div>
   );
 };

@@ -1,0 +1,46 @@
+/*
+ * =================================================================
+ * Component: Badge
+ * =================================================================
+ */
+.badge {
+  display: inline-block;
+  padding: var(--spacing-xs) var(--spacing-m);
+  font-size: var(--font-size-200);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-200);
+  border-radius: var(--border-radius-large);
+  border: var(--stroke-width-thick) solid var(--color-stroke-1);
+  box-shadow: 2px 2px 0 0 var(--color-shadow);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.badge_default {
+  background-color: var(--color-bg-2);
+  color: var(--color-text-1);
+}
+
+.badge_info {
+  background-color: var(--color-accent-blue);
+  color: var(--color-text-inverted);
+  border-color: var(--color-stroke-1);
+}
+
+.badge_success {
+  background-color: var(--color-accent-green);
+  color: var(--color-text-inverted);
+  border-color: var(--color-stroke-1);
+}
+
+.badge_warning {
+  background-color: var(--color-accent-yellow);
+  color: var(--color-text-inverted);
+  border-color: var(--color-stroke-1);
+}
+
+.badge_error {
+  background-color: var(--color-accent-red);
+  color: var(--color-text-inverted);
+  border-color: var(--color-stroke-1);
+}

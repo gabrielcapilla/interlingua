@@ -19,9 +19,9 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
  * @interactions
  * - **CSS:** This component's appearance is heavily dependent on a set of BEM-style CSS classes defined in `index.css`:
  *   - `.button`: Base styles.
- *   - `.button--{variant}`: Variant-specific styles (e.g., `.button--primary`).
- *   - `.button--shape-{buttonShape}`: Shape-specific styles (e.g., `.button--shape-circular`).
- *   - `.button--icon-only`: Styles for icon-only buttons.
+ *   - `.button_{variant}`: Variant-specific styles (e.g., `.button_primary`).
+ *   - `.button_shape-{buttonShape}`: Shape-specific styles (e.g., `.button_shape-circular`).
+ *   - `.button_icon-only`: Styles for icon-only buttons.
  *   - Hover, active, focus, and disabled states are also managed via CSS.
  */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -29,9 +29,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     
     const classNames = [
       'button',
-      `button--${variant}`,
-      `button--shape-${buttonShape}`,
-      iconOnly ? 'button--icon-only' : '',
+      `button_${variant}`,
+      `button_shape-${buttonShape}`,
+      iconOnly ? 'button_icon-only' : '',
       className || ''
     ].filter(Boolean).join(' ');
 

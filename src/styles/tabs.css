@@ -1,0 +1,55 @@
+/*
+ * =================================================================
+ * Component: Tabs
+ * =================================================================
+ */
+.tabs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-l);
+}
+
+.tabs_list {
+  display: flex;
+  border-bottom: var(--stroke-width-thick) solid var(--color-stroke-1);
+  gap: var(--spacing-s);
+}
+
+.tabs_trigger {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-300);
+  font-weight: var(--font-weight-medium);
+  padding: var(--spacing-s) var(--spacing-m);
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-bottom: var(--stroke-width-thick) solid transparent;
+  margin-bottom: -2px;
+  /* Align with the container's border */
+  color: var(--color-text-2);
+  transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease;
+}
+
+.tabs_trigger:hover:not([data-state='active']) {
+  color: var(--color-text-1);
+}
+
+.tabs_trigger:focus-visible {
+  outline: var(--stroke-width-thick) solid var(--color-stroke-focus);
+  outline-offset: 2px;
+  border-radius: var(--border-radius-small);
+}
+
+.tabs_trigger[data-state='active'] {
+  color: var(--color-text-1);
+  font-weight: var(--font-weight-bold);
+  border-color: var(--color-brand-bg);
+}
+
+.tabs_content {
+  line-height: var(--line-height-400);
+}
+
+.tabs_content:focus-visible {
+  outline: none;
+}

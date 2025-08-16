@@ -1,0 +1,22 @@
+/*
+ * =================================================================
+ * Component: AppHeader
+ * =================================================================
+ */
+.app-header {
+  width: 100%;
+  padding: var(--spacing-s) 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: var(--stroke-width-thick) solid var(--color-stroke-1);
+  flex-shrink: 0;
+}
+
+.app-header_title {
+  font-size: var(--font-size-500);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-1);
+  margin: 0;
+  white-space: nowrap;
+}

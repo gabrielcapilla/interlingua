@@ -1,0 +1,42 @@
+/*
+ * =================================================================
+ * Component: AppFooter
+ * =================================================================
+ */
+.app-footer {
+  padding: var(--spacing-m);
+  text-align: center;
+  font-size: var(--font-size-300);
+  color: var(--color-text-2);
+  border-top: var(--stroke-width-thick) solid var(--color-stroke-1);
+  flex-shrink: 0;
+}
+
+.app-footer p {
+  margin: 0;
+}
+
+.app-footer_link {
+  color: var(--color-text-1);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  position: relative;
+}
+
+.app-footer_link::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  bottom: -2px;
+  left: 0;
+  background-color: var(--color-accent-yellow);
+  transform: scaleX(0);
+  transform-origin: bottom right;
+  transition: transform 0.25s var(--curve-easy-ease);
+}
+
+.app-footer_link:hover::after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
+}

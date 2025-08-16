@@ -52,27 +52,27 @@ export const Toast: React.FC<ToastProps> = ({
 
   const classNames = [
     'toast',
-    `toast--${variant}`,
-    isExiting ? 'toast--exiting' : '',
+    `toast_${variant}`,
+    isExiting ? 'toast_exiting' : '',
   ].filter(Boolean).join(' ');
 
   const icon = variantIcons[variant];
 
   return (
     <div className={classNames} role="alert" aria-live="assertive" aria-atomic="true">
-      <span className="toast__icon" aria-hidden="true">
+      <span className="toast_icon" aria-hidden="true">
         {icon}
       </span>
-      <div className="toast__content">
-        <div className="toast__title">{title}</div>
-        <div className="toast__message">{message}</div>
+      <div className="toast_content">
+        <div className="toast_title">{title}</div>
+        <div className="toast_message">{message}</div>
       </div>
       <Button
         variant="transparent"
         iconOnly
         buttonShape="circular"
         onClick={handleDismiss}
-        className="toast__close-button"
+        className="toast_close-button"
         aria-label="Close notification"
       >
         ✕

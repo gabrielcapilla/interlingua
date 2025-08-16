@@ -1,0 +1,43 @@
+/*
+ * =================================================================
+ * Global Styles
+ * =================================================================
+ * Base styles for the entire application.
+ */
+body {
+  font-family: var(--font-family-base);
+  margin: 0;
+  background-color: var(--color-bg-1);
+  color: var(--color-text-1);
+  line-height: var(--line-height-300);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
+#root {
+  display: flex;
+  min-height: 100vh;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin: 0;
+  font-weight: var(--font-weight-regular);
+}

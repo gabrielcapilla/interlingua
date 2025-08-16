@@ -10,13 +10,13 @@ interface AppHeaderProps {
  * @param {string} props.title The text to display as the main title in the header.
  * @returns {React.ReactElement} The rendered application header component.
  * @interactions
- * - **CSS:** Relies on the `.app-header` and `.app-header__title` classes in `index.css` for its layout and styling.
+ * - **CSS:** Relies on the `.app-header` and `.app-header_title` classes in `index.css` for its layout and styling.
  * - **Parent Component:** Rendered by `TranslationPage` to provide a consistent top-level navigation bar.
  */
 export const AppHeader: React.FC<AppHeaderProps> = ({ title }) => {
   return (
     <header className="app-header">
-      <h1 className="app-header__title">{title}</h1>
+      <h1 className="app-header_title">{title}</h1>
     </header>
   );
 };

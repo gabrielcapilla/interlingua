@@ -1,0 +1,126 @@
+/*
+ * =================================================================
+ * Component: Toast
+ * =================================================================
+ */
+.toast-container {
+  position: fixed;
+  top: var(--spacing-l);
+  right: var(--spacing-l);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-m);
+  max-width: 380px;
+  width: calc(100% - var(--spacing-l) * 2);
+}
+
+@keyframes toast-in-right {
+  from {
+    transform: translateX(110%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes toast-out-right {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  to {
+    transform: translateX(110%);
+    opacity: 0;
+  }
+}
+
+.toast {
+  background-color: var(--color-bg-1);
+  border: var(--stroke-width-thick) solid var(--color-stroke-1);
+  border-radius: var(--border-radius-large);
+  box-shadow: 4px 4px 0 0 var(--color-shadow);
+  padding: var(--spacing-m);
+  display: flex;
+  gap: var(--spacing-m);
+  animation: toast-in-right 300ms var(--curve-easy-ease);
+  position: relative;
+  align-items: flex-start;
+}
+
+.toast_exiting {
+  animation: toast-out-right 300ms var(--curve-easy-ease) forwards;
+}
+
+.toast_icon {
+  font-size: var(--font-size-500);
+  line-height: var(--line-height-300);
+  font-weight: var(--font-weight-bold);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.toast_content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding-right: var(--spacing-l);
+}
+
+.toast_title {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+}
+
+.toast_message {
+  font-size: var(--font-size-300);
+  line-height: var(--line-height-300);
+  color: var(--color-text-2);
+}
+
+.toast_close-button {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  padding: 0;
+}
+
+.toast_info {
+  border-color: var(--color-accent-blue);
+}
+
+.toast_info .toast_icon {
+  color: var(--color-accent-blue);
+}
+
+.toast_success {
+  border-color: var(--color-accent-green);
+}
+
+.toast_success .toast_icon {
+  color: var(--color-accent-green);
+}
+
+.toast_warning {
+  border-color: var(--color-accent-yellow);
+}
+
+.toast_warning .toast_icon {
+  color: var(--color-accent-yellow);
+}
+
+.toast_error {
+  border-color: var(--color-accent-red);
+}
+
+.toast_error .toast_icon {
+  color: var(--color-accent-red);
+}

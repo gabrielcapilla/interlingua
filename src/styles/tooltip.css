@@ -1,0 +1,35 @@
+/*
+ * =================================================================
+ * Component: Tooltip
+ * =================================================================
+ */
+.tooltip {
+  position: relative;
+  display: inline-flex;
+  cursor: help;
+}
+
+.tooltip_content {
+  position: absolute;
+  bottom: calc(100% + var(--spacing-s));
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--color-shadow);
+  color: var(--color-text-inverted);
+  padding: var(--spacing-xs) var(--spacing-m);
+  border-radius: var(--border-radius-medium);
+  font-size: var(--font-size-200);
+  line-height: var(--line-height-200);
+  white-space: nowrap;
+  z-index: 10;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--curve-easy-ease),
+    visibility var(--duration-fast) var(--curve-easy-ease);
+}
+
+.tooltip:hover .tooltip_content,
+.tooltip:focus-within .tooltip_content {
+  visibility: visible;
+  opacity: 1;
+}

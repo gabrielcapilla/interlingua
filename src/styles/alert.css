@@ -1,0 +1,61 @@
+/*
+ * =================================================================
+ * Component: Alert
+ * =================================================================
+ */
+.alert {
+  padding: var(--spacing-m) var(--spacing-l);
+  border: var(--stroke-width-thick) solid var(--color-stroke-1);
+  border-radius: var(--border-radius-large);
+  box-shadow: 4px 4px 0 0 var(--color-shadow);
+  background-color: var(--color-bg-2);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-m);
+}
+
+.alert_icon {
+  font-size: var(--font-size-500);
+  line-height: var(--line-height-300);
+  font-weight: var(--font-weight-bold);
+  flex-shrink: 0;
+}
+
+.alert_message {
+  font-size: var(--font-size-300);
+  line-height: var(--line-height-300);
+  color: var(--color-text-1);
+  padding-top: 2px;
+}
+
+.alert_info {
+  border-color: var(--color-accent-blue);
+}
+
+.alert_info .alert_icon {
+  color: var(--color-accent-blue);
+}
+
+.alert_success {
+  border-color: var(--color-accent-green);
+}
+
+.alert_success .alert_icon {
+  color: var(--color-accent-green);
+}
+
+.alert_warning {
+  border-color: var(--color-accent-yellow);
+}
+
+.alert_warning .alert_icon {
+  color: var(--color-accent-yellow);
+}
+
+.alert_error {
+  border-color: var(--color-accent-red);
+}
+
+.alert_error .alert_icon {
+  color: var(--color-accent-red);
+}

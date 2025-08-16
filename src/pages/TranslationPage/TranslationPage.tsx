@@ -244,7 +244,7 @@ export const TranslationPage: React.FC = () => {
           <div className="language-bar">
             <div className="language-selectors">
               <CustomDropdown
-                className="language-selectors__dropdown"
+                className="language-selectors_dropdown"
                 options={languageOptions}
                 value={inputLanguage}
                 onChange={(value) => setInputLanguage(value)}
@@ -263,7 +263,7 @@ export const TranslationPage: React.FC = () => {
                 ⇆
               </Button>
               <CustomDropdown
-                className="language-selectors__dropdown"
+                className="language-selectors_dropdown"
                 options={outputLanguageOptions}
                 value={outputLanguage}
                 onChange={(value) => setOutputLanguage(value)}
@@ -271,9 +271,9 @@ export const TranslationPage: React.FC = () => {
                 columns={2}
               />
             </div>
-            <div className={`model-selector ${isModelSelectorDisabled ? 'model-selector--disabled' : ''}`}>
+            <div className={`model-selector ${isModelSelectorDisabled ? 'model-selector_disabled' : ''}`}>
               <CustomDropdown
-                className="model-selector__dropdown"
+                className="model-selector_dropdown"
                 options={ollamaModels}
                 value={selectedModel}
                 onChange={(value) => setSelectedModel(value)}
@@ -289,7 +289,7 @@ export const TranslationPage: React.FC = () => {
                 disabled={!selectedModel || isLoadingModels}
                 title={selectedModel === favoriteModel ? "Unset as favorite model" : "Set as favorite model"}
                 aria-label={selectedModel === favoriteModel ? "Unset as favorite model" : "Set as favorite model"}
-                className="model-selector__favorite-button"
+                className="model-selector_favorite-button"
               >
                 {selectedModel && selectedModel === favoriteModel ? '★' : '☆'}
               </Button>

@@ -85,7 +85,7 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
       default:
         break;
     }
-  };
+  }
   
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -106,15 +106,15 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
 
   const containerClasses = ['custom-dropdown', className || ''].filter(Boolean).join(' ');
   const optionsClasses = [
-    'custom-dropdown__options',
-    columns === 2 ? 'custom-dropdown__options--columns-2' : '',
+    'custom-dropdown_options',
+    columns === 2 ? 'custom-dropdown_options-columns-2' : '',
   ].filter(Boolean).join(' ');
 
   return (
     <div ref={dropdownRef} className={containerClasses}>
       <button
         type="button"
-        className="custom-dropdown__trigger"
+        className="custom-dropdown_trigger"
         onClick={handleToggle}
         onKeyDown={handleKeyDown}
         disabled={disabled}
@@ -123,7 +123,7 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
         aria-label={ariaLabel}
       >
         <span>{selectedOption?.label || placeholder}</span>
-        <span className="custom-dropdown__arrow" aria-hidden="true" />
+        <span className="custom-dropdown_arrow" aria-hidden="true" />
       </button>
 
       {isOpen && (
@@ -135,7 +135,7 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
           {options.map(option => (
             <li
               key={option.value}
-              className={`custom-dropdown__option ${option.value === value ? 'custom-dropdown__option--selected' : ''}`}
+              className={`custom-dropdown_option ${option.value === value ? 'custom-dropdown_option-selected' : ''}`}
               onClick={() => handleOptionClick(option.value)}
               role="option"
               aria-selected={option.value === value}
