@@ -75,34 +75,51 @@ export const TranslationPage: React.FC = () => {
     translateText(inputText);
   }, [inputText, selectedModel, isTranslating, translateText, isOverLimit]);
 
+  // Store the last translated text to prevent redundant translations
+  const lastTranslatedTextRef = useRef<string>('');
+  
   useEffect(() => {
+    // Clear translation when input is empty
     if (!inputText.trim()) {
       setTranslatedText('');
       setTranslationError(null);
+      lastTranslatedTextRef.current = '';
       return;
     }
 
+    // Only auto-translate for auto-detect mode
     if (inputLanguage === 'auto') {
+      // Don't translate if we're already translating the same text
+      if (inputText === lastTranslatedTextRef.current && translatedText && !translationError) {
+        return;
+      }
+
       if (!selectedModel || isOverLimit) {
         return;
       }
 
+      // Clear any existing timeouts before setting a new one
       const timerId = setTimeout(() => {
+        lastTranslatedTextRef.current = inputText;
         translateText(inputText);
       }, 750);
 
       return () => {
         clearTimeout(timerId);
       };
+    } else {
+      // For non-auto-detect mode, clear translation when languages change
+      // but not when text changes (manual translation)
+      lastTranslatedTextRef.current = '';
     }
-  }, [inputText, selectedModel, inputLanguage, translateText, setTranslatedText, setTranslationError, isOverLimit]);
+  }, [inputText, selectedModel, inputLanguage, translateText, setTranslatedText, setTranslationError, isOverLimit, translatedText, translationError]);
 
   useEffect(() => {
-    if (inputLanguage !== 'auto') {
-      setTranslatedText('');
-      setTranslationError(null);
-    }
-  }, [inputLanguage, outputLanguage, setTranslatedText, setTranslationError]);
+    // Only clear translation when languages change, not on every render
+    setTranslatedText('');
+    setTranslationError(null);
+    lastTranslatedTextRef.current = '';
+  }, [inputLanguage, outputLanguage]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -203,8 +220,11 @@ export const TranslationPage: React.FC = () => {
     // });
   };
 
-  const characterCount = inputText.length;
-  const wordCount = inputText.trim() ? inputText.trim().split(/\s+/).length : 0;
+  const characterCount = useMemo(() => inputText.length, [inputText]);
+  const wordCount = useMemo(() => 
+    inputText.trim() ? inputText.trim().split(/\s+/).length : 0, 
+    [inputText]
+  );
 
   const outputLanguageOptions = useMemo(() =>
     languageOptions.filter(option => option.value !== 'auto'),
@@ -221,13 +241,16 @@ export const TranslationPage: React.FC = () => {
     [outputLanguage]
   );
 
-  const isModelSelectorDisabled = isLoadingModels || !!modelError || ollamaModels.length === 0;
+  const isModelSelectorDisabled = useMemo(() => 
+    isLoadingModels || !!modelError || ollamaModels.length === 0,
+    [isLoadingModels, modelError, ollamaModels.length]
+  );
 
-  const getTranslateButtonTitle = () => {
+  const getTranslateButtonTitle = useCallback(() => {
     if (isOverLimit) return `Input exceeds character limit of ${MAX_INPUT_CHARACTERS.toLocaleString()}`;
     if (!selectedModel || !!modelError) return "A model must be selected to translate";
     return "Translate the input text (Ctrl+Enter)";
-  };
+  }, [isOverLimit, selectedModel, modelError]);
 
   return (
     <div className="page-container">

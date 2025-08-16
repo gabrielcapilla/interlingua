@@ -41,7 +41,15 @@ function handleNetworkError(error: unknown): string {
  */
 export async function fetchOllamaModels(): Promise<DropdownOption[]> {
   try {
-    const response = await fetch(`${OLLAMA_API_BASE_URL}/tags`);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+    const response = await fetch(`${OLLAMA_API_BASE_URL}/tags`, {
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
     if (!response.ok) {
       throw new Error(`Failed to fetch models: ${response.status} ${response.statusText}`);
     }
@@ -52,9 +60,13 @@ export async function fetchOllamaModels(): Promise<DropdownOption[]> {
     }));
   } catch (error) {
     console.error('Error fetching Ollama models:', error);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Request timeout: Ollama server is not responding. Ensure it is running and accessible.');
+    }
     throw new Error(handleNetworkError(error));
   }
 }
+
 
 /**
  * @description Sends a chat completion request to the Ollama API's `/api/chat` endpoint to perform a translation.
@@ -88,11 +100,17 @@ export async function fetchTranslation({
   };
 
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout for translations
+
     const response = await fetch(`${OLLAMA_API_BASE_URL}/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(requestBody),
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: `HTTP error: ${response.status}` }));
@@ -104,6 +122,10 @@ export async function fetchTranslation({
 
   } catch (error) {
     console.error('Error communicating with Ollama API:', error);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Translation request timeout. The model may be taking too long to respond.');
+    }
     throw new Error(handleNetworkError(error));
   }
 }
+

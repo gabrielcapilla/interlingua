@@ -52,6 +52,11 @@ function useTranslation({ selectedModel, inputLanguage, outputLanguage }: UseTra
     const textToTranslate = text.trim();
     if (!textToTranslate || !selectedModel || isTranslatingRef.current) return;
 
+    // Check if we're already translating the same text to prevent duplicate requests
+    if (textToTranslate === translatedText && !translationError) {
+      return;
+    }
+
     isTranslatingRef.current = true;
     setIsTranslating(true);
     setTranslationError(null);
@@ -97,7 +102,7 @@ function useTranslation({ selectedModel, inputLanguage, outputLanguage }: UseTra
       setIsTranslating(false);
       isTranslatingRef.current = false;
     }
-  }, [selectedModel, inputLanguage, outputLanguage, setTranslatedText, setTranslationError]);
+  }, [selectedModel, inputLanguage, outputLanguage, setTranslatedText, setTranslationError, translatedText, translationError]);
 
   return { translatedText, isTranslating, translationError, setTranslationError, translateText, setTranslatedText };
 }

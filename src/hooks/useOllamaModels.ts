@@ -51,14 +51,18 @@ function useOllamaModels(): UseOllamaModelsReturn {
 
       if (formattedModels.length > 0) {
         setSelectedModel(prevSelected => {
+          // Only update if we don't already have a valid selection
+          if (prevSelected && formattedModels.some(m => m.value === prevSelected)) {
+            return prevSelected;
+          }
+          
+          // Prefer favorite model if available
           const favoriteExists = formattedModels.some(m => m.value === favoriteModel);
           if (favoriteExists) {
             return favoriteModel;
           }
-          const prevSelectedExists = formattedModels.some(m => m.value === prevSelected);
-          if (prevSelectedExists) {
-            return prevSelected;
-          }
+          
+          // Fall back to first model
           return formattedModels[0].value;
         });
       } else {
