@@ -77,7 +77,7 @@ export const TranslationPage: React.FC = () => {
 
   // Store the last translated text to prevent redundant translations
   const lastTranslatedTextRef = useRef<string>('');
-  
+
   useEffect(() => {
     // Clear translation when input is empty
     if (!inputText.trim()) {
@@ -221,8 +221,8 @@ export const TranslationPage: React.FC = () => {
   };
 
   const characterCount = useMemo(() => inputText.length, [inputText]);
-  const wordCount = useMemo(() => 
-    inputText.trim() ? inputText.trim().split(/\s+/).length : 0, 
+  const wordCount = useMemo(() =>
+    inputText.trim() ? inputText.trim().split(/\s+/).length : 0,
     [inputText]
   );
 
@@ -241,7 +241,7 @@ export const TranslationPage: React.FC = () => {
     [outputLanguage]
   );
 
-  const isModelSelectorDisabled = useMemo(() => 
+  const isModelSelectorDisabled = useMemo(() =>
     isLoadingModels || !!modelError || ollamaModels.length === 0,
     [isLoadingModels, modelError, ollamaModels.length]
   );

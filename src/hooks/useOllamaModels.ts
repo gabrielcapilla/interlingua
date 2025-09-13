@@ -55,13 +55,13 @@ function useOllamaModels(): UseOllamaModelsReturn {
           if (prevSelected && formattedModels.some(m => m.value === prevSelected)) {
             return prevSelected;
           }
-          
+
           // Prefer favorite model if available
           const favoriteExists = formattedModels.some(m => m.value === favoriteModel);
           if (favoriteExists) {
             return favoriteModel;
           }
-          
+
           // Fall back to first model
           return formattedModels[0].value;
         });

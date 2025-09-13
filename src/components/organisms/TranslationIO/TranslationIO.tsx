@@ -124,9 +124,9 @@ export const TranslationIO: React.FC<TranslationIOProps> = ({
                 )}
                 {!isTranslating && translatedText && (
                     <div className="translation-io_copy-button-wrapper">
-                        <Button 
-                            variant="secondary" 
-                            onClick={handleCopy} 
+                        <Button
+                            variant="secondary"
+                            onClick={handleCopy}
                             aria-label="Copy translated text"
                         >
                             Copy

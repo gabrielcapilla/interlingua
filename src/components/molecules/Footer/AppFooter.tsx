@@ -17,11 +17,11 @@ export const AppFooter: React.FC = () => {
     <footer className="app-footer">
       <p>
         Interlingua v1.0.0 &copy; {currentYear} | Crafted by {authorName} |{' '}
-        <a 
-          href={githubUrl} 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          className="app-footer_link" 
+        <a
+          href={githubUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="app-footer_link"
           title={`Visit ${authorName}'s GitHub profile`}
         >
           GitHub
