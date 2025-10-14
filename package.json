@@ -9,15 +9,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-markdown": "^9.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22.14.0",
+    "@types/node": "^24.7.2",
     "@types/react-dom": "^19.2.2",
-    "typescript": "~5.7.2",
-    "vite": "^6.2.0"
+    "typescript": "~5.9.3",
+    "vite": "^7.1.9"
   }
 }
