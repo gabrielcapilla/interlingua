@@ -46,12 +46,27 @@ function useTranslation({ selectedModel, inputLanguage, outputLanguage }: UseTra
   const [translatedText, setTranslatedText] = useState<string>('');
   const [isTranslating, setIsTranslating] = useState<boolean>(false);
   const [translationError, setTranslationError] = useState<string | null>(null);
+  
+  // Track the current request ID to handle race conditions
+  const currentRequestId = useRef(0);
   const isTranslatingRef = useRef(false);
+
+  const getLanguageLabelWithDialect = useCallback((langCode: string): string => {
+    const lang = languageOptions.find(l => l.value === langCode);
+    if (!lang) return langCode;
+    if (lang.value === 'ca') {
+      return `${lang.label} (from Catalonia)`;
+    }
+    return lang.label;
+  }, []);
 
   const translateText = useCallback(async (text: string) => {
     const textToTranslate = text.trim();
     if (!textToTranslate || !selectedModel || isTranslatingRef.current) return;
 
+    // Generate a unique request ID for this translation
+    const requestId = ++currentRequestId.current;
+    
     // Check if we're already translating the same text to prevent duplicate requests
     if (textToTranslate === translatedText && !translationError) {
       return;
@@ -60,16 +75,10 @@ function useTranslation({ selectedModel, inputLanguage, outputLanguage }: UseTra
     isTranslatingRef.current = true;
     setIsTranslating(true);
     setTranslationError(null);
-    setTranslatedText('');
-
-    const getLanguageLabelWithDialect = (langCode: string): string => {
-      const lang = languageOptions.find(l => l.value === langCode);
-      if (!lang) return langCode;
-      if (lang.value === 'ca') {
-        return `${lang.label} (from Catalonia)`;
-      }
-      return lang.label;
-    };
+    // Only clear the translated text if it's a different request
+    if (requestId !== currentRequestId.current - 1) {
+      setTranslatedText('');
+    }
 
     const outputLangLabel = getLanguageLabelWithDialect(outputLanguage);
 
@@ -93,16 +102,26 @@ function useTranslation({ selectedModel, inputLanguage, outputLanguage }: UseTra
         messages,
         options: { temperature: 0.2, seed: 42, top_k: 20, top_p: 0.7 },
       });
-      setTranslatedText(translation);
+
+      // Only update state if this is the most recent request
+      if (requestId === currentRequestId.current) {
+        setTranslatedText(translation);
+      }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-      setTranslationError(errorMessage);
-      setTranslatedText('');
+      // Only update error state if this is the most recent request
+      if (requestId === currentRequestId.current) {
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+        setTranslationError(errorMessage);
+        setTranslatedText('');
+      }
     } finally {
-      setIsTranslating(false);
+      // Only update loading state if this is the most recent request
+      if (requestId === currentRequestId.current) {
+        setIsTranslating(false);
+      }
       isTranslatingRef.current = false;
     }
-  }, [selectedModel, inputLanguage, outputLanguage, setTranslatedText, setTranslationError, translatedText, translationError]);
+  }, [selectedModel, inputLanguage, outputLanguage, setTranslatedText, setTranslationError, translatedText, translationError, getLanguageLabelWithDialect]);
 
   return { translatedText, isTranslating, translationError, setTranslationError, translateText, setTranslatedText };
 }
