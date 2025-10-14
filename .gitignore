@@ -1,25 +1,87 @@
+# Dependencies
+.yarn/
+bun.lockb
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Production builds
+out/
+dist/
+build/
+.next/
+.nuxt/
+.output/
+.output-v2/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE and editor files
+*~
+.vs/
+*.swp
+*.swo
+.idea/
+.vscode/
+.project
+.settings/
+
+# OS generated files
+._*
+.Trashes
+Thumbs.db
+.DS_Store
+.DS_Store?
+.directory
+desktop.ini
+ehthumbs.db
+.Spotlight-V100
+
 # Logs
-logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
 lerna-debug.log*
+.pnpm-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Coverage directory used by tools like istanbul
+coverage/
+.nyc_output/
 
-# Editor directories and files
-.vscode/*
+# TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Vite specific
+.vite/
+
+# Bun specific
+.bun/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Local configuration files for VS Code
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
 !.vscode/extensions.json
-package-lock.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+
+# Project specific files
+dist-ssr/
+*.local
