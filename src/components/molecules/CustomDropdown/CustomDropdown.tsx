@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect, useCallback, KeyboardEvent, useMemo } from 'react';
-import { DropdownOption } from '../../../types';
+import React, { useState, useRef, useEffect, KeyboardEvent, useMemo } from "react";
+import { DropdownOption } from "../../../types";
 
 interface CustomDropdownProps {
   options: DropdownOption[];
@@ -7,7 +7,7 @@ interface CustomDropdownProps {
   onChange: (value: string) => void;
   placeholder?: string;
   disabled?: boolean;
-  'aria-label'?: string;
+  "aria-label"?: string;
   className?: string;
   columns?: 1 | 2;
 }
@@ -31,20 +31,23 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
   options,
   value,
   onChange,
-  placeholder = 'Select an option',
+  placeholder = "Select an option",
   disabled = false,
-  'aria-label': ariaLabel,
+  "aria-label": ariaLabel,
   className,
   columns = 1,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const selectedOption = useMemo(() => options.find(option => option.value === value), [options, value]);
+  const selectedOption = useMemo(
+    () => options.find((option) => option.value === value),
+    [options, value],
+  );
 
   const handleToggle = () => {
     if (!disabled) {
-      setIsOpen(prev => !prev);
+      setIsOpen((prev) => !prev);
     }
   };
 
@@ -56,36 +59,36 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
   const handleKeyDown = (e: KeyboardEvent) => {
     if (disabled) return;
     switch (e.key) {
-      case 'Enter':
-      case ' ':
+      case "Enter":
+      case " ":
         e.preventDefault();
         handleToggle();
         break;
-      case 'Escape':
+      case "Escape":
         if (isOpen) setIsOpen(false);
         break;
-      case 'ArrowDown':
+      case "ArrowDown":
         e.preventDefault();
         if (!isOpen) {
           setIsOpen(true);
         } else {
-          const currentIndex = options.findIndex(o => o.value === value);
+          const currentIndex = options.findIndex((o) => o.value === value);
           const nextIndex = Math.min(options.length - 1, currentIndex + 1);
           onChange(options[nextIndex].value);
         }
         break;
-      case 'ArrowUp':
+      case "ArrowUp":
         e.preventDefault();
         if (isOpen) {
-            const currentIndex = options.findIndex(o => o.value === value);
-            const prevIndex = Math.max(0, currentIndex - 1);
-            onChange(options[prevIndex].value);
+          const currentIndex = options.findIndex((o) => o.value === value);
+          const prevIndex = Math.max(0, currentIndex - 1);
+          onChange(options[prevIndex].value);
         }
         break;
       default:
         break;
     }
-  }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -93,22 +96,28 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
         setIsOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   useEffect(() => {
     if (isOpen) {
-      const selectedEl = dropdownRef.current?.querySelector<HTMLElement>('[aria-selected="true"]');
+      const selectedEl = dropdownRef.current?.querySelector<HTMLElement>(
+        '[aria-selected="true"]',
+      );
       selectedEl?.focus();
     }
   }, [isOpen]);
 
-  const containerClasses = ['custom-dropdown', className || ''].filter(Boolean).join(' ');
+  const containerClasses = ["custom-dropdown", className || ""]
+    .filter(Boolean)
+    .join(" ");
   const optionsClasses = [
-    'custom-dropdown_options',
-    columns === 2 ? 'custom-dropdown_options-columns-2' : '',
-  ].filter(Boolean).join(' ');
+    "custom-dropdown_options",
+    columns === 2 ? "custom-dropdown_options-columns-2" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div ref={dropdownRef} className={containerClasses}>
@@ -127,21 +136,17 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
       </button>
 
       {isOpen && (
-        <ul
-          className={optionsClasses}
-          role="listbox"
-          aria-label={ariaLabel}
-        >
-          {options.map(option => (
+        <ul className={optionsClasses} role="listbox" aria-label={ariaLabel}>
+          {options.map((option) => (
             <li
               key={option.value}
-              className={`custom-dropdown_option ${option.value === value ? 'custom-dropdown_option-selected' : ''}`}
+              className={`custom-dropdown_option ${option.value === value ? "custom-dropdown_option-selected" : ""}`}
               onClick={() => handleOptionClick(option.value)}
               role="option"
               aria-selected={option.value === value}
               tabIndex={0}
               onKeyDown={(e) => {
-                if(e.key === 'Enter' || e.key === ' ') {
+                if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
                   handleOptionClick(option.value);
                 }

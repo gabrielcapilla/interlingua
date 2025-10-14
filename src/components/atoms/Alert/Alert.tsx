@@ -1,6 +1,6 @@
-import React from 'react';
+import React from "react";
 
-type AlertVariant = 'info' | 'success' | 'warning' | 'error';
+type AlertVariant = "info" | "success" | "warning" | "error";
 
 interface AlertProps {
   variant?: AlertVariant;
@@ -9,10 +9,10 @@ interface AlertProps {
 }
 
 const variantIcons: Record<AlertVariant, string> = {
-  info: 'ℹ',
-  success: '✓',
-  warning: '⚠',
-  error: '✕',
+  info: "ℹ",
+  success: "✓",
+  warning: "⚠",
+  error: "✕",
 };
 
 /**
@@ -26,11 +26,11 @@ const variantIcons: Record<AlertVariant, string> = {
  * - **CSS:** Uses the `.alert` BEM block and its modifiers (`.alert_{variant}`) from `index.css`.
  */
 export const Alert: React.FC<AlertProps> = ({
-  variant = 'info',
+  variant = "info",
   children,
   className,
 }) => {
-  const classNames = ['alert', `alert_${variant}`, className].filter(Boolean).join(' ');
+  const classNames = ["alert", `alert_${variant}`, className].filter(Boolean).join(" ");
   const icon = variantIcons[variant];
 
   return (

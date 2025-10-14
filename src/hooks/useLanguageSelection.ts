@@ -1,6 +1,9 @@
-import usePersistentState from './usePersistentState';
-import { LOCAL_STORAGE_INPUT_LANG_KEY, LOCAL_STORAGE_OUTPUT_LANG_KEY } from '../config/constants';
-import { LanguageCode } from '../types';
+import usePersistentState from "./usePersistentState";
+import {
+  LOCAL_STORAGE_INPUT_LANG_KEY,
+  LOCAL_STORAGE_OUTPUT_LANG_KEY,
+} from "../config/constants";
+import { LanguageCode } from "../types";
 
 interface UseLanguageSelectionReturn {
   inputLanguage: string;
@@ -25,19 +28,22 @@ interface UseLanguageSelectionReturn {
  * - **State:** Manages the `inputLanguage` and `outputLanguage` states.
  * - **Constants:** Uses `LOCAL_STORAGE_INPUT_LANG_KEY` and `LOCAL_STORAGE_OUTPUT_LANG_KEY` as keys for `localStorage`.
  */
-function useLanguageSelection(defaultInputLang: LanguageCode = 'auto', defaultOutputLang: LanguageCode = 'es'): UseLanguageSelectionReturn {
+function useLanguageSelection(
+  defaultInputLang: LanguageCode = "auto",
+  defaultOutputLang: LanguageCode = "es",
+): UseLanguageSelectionReturn {
   const [inputLanguage, setInputLanguage] = usePersistentState<string>(
     LOCAL_STORAGE_INPUT_LANG_KEY,
-    defaultInputLang
+    defaultInputLang,
   );
   const [outputLanguage, setOutputLanguage] = usePersistentState<string>(
     LOCAL_STORAGE_OUTPUT_LANG_KEY,
-    defaultOutputLang
+    defaultOutputLang,
   );
 
   const handleLanguageSwap = () => {
     // Swapping is disabled when 'auto' is selected, as it's not a valid output language.
-    if (inputLanguage === 'auto') {
+    if (inputLanguage === "auto") {
       return;
     }
     const currentInputLang = inputLanguage;

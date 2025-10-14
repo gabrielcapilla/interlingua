@@ -1,9 +1,9 @@
-import React, { forwardRef, ButtonHTMLAttributes } from 'react';
+import React, { forwardRef, ButtonHTMLAttributes } from "react";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'subtle' | 'transparent';
-  buttonShape?: 'rounded' | 'circular';
+  variant?: "primary" | "secondary" | "subtle" | "transparent";
+  buttonShape?: "rounded" | "circular";
   iconOnly?: boolean;
 }
 
@@ -25,26 +25,33 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
  *   - Hover, active, focus, and disabled states are also managed via CSS.
  */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ children, variant = 'secondary', buttonShape = 'rounded', iconOnly = false, className, ...props }, ref) => {
-
+  (
+    {
+      children,
+      variant = "secondary",
+      buttonShape = "rounded",
+      iconOnly = false,
+      className,
+      ...props
+    },
+    ref,
+  ) => {
     const classNames = [
-      'button',
+      "button",
       `button_${variant}`,
       `button_shape-${buttonShape}`,
-      iconOnly ? 'button_icon-only' : '',
-      className || ''
-    ].filter(Boolean).join(' ');
+      iconOnly ? "button_icon-only" : "",
+      className || "",
+    ]
+      .filter(Boolean)
+      .join(" ");
 
     return (
-      <button
-        ref={ref}
-        className={classNames}
-        {...props}
-      >
+      <button ref={ref} className={classNames} {...props}>
         {children}
       </button>
     );
-  }
+  },
 );
 
-Button.displayName = 'Button';
+Button.displayName = "Button";

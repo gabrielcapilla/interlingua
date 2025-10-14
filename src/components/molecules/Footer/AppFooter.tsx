@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 /**
  * @description Renders the main footer for the application. It displays the app name, version, copyright, author, and a link to a GitHub profile.
@@ -16,7 +16,7 @@ export const AppFooter: React.FC = () => {
   return (
     <footer className="app-footer">
       <p>
-        Interlingua v1.0.0 &copy; {currentYear} | Crafted by {authorName} |{' '}
+        Interlingua v1.0.0 &copy; {currentYear} | Crafted by {authorName} |{" "}
         <a
           href={githubUrl}
           target="_blank"

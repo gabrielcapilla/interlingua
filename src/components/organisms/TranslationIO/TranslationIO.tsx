@@ -1,7 +1,7 @@
-import React, { useCallback } from 'react';
-import { ThinkingIndicator } from '../../atoms/ThinkingIndicator';
-import { Button } from '../../atoms/Button';
-import { useToast } from '../../../hooks/useToast';
+import React, { useCallback } from "react";
+import { ThinkingIndicator } from "../../atoms/ThinkingIndicator";
+import { Button } from "../../atoms/Button";
+import { useToast } from "../../../hooks/useToast";
 
 interface TranslationIOProps {
   inputText: string;
@@ -54,87 +54,92 @@ export const TranslationIO: React.FC<TranslationIOProps> = ({
   isOverLimit,
   maxCharacters,
 }) => {
-    const { addToast } = useToast();
+  const { addToast } = useToast();
 
-    const handleCopy = useCallback(() => {
-        if (!translatedText) return;
-        navigator.clipboard.writeText(translatedText).then(() => {
-            addToast({
-                variant: 'success',
-                title: 'Success',
-                message: 'Translated text copied to clipboard.',
-            });
-        }).catch(err => {
-            addToast({
-                variant: 'error',
-                title: 'Copy Failed',
-                message: 'Could not copy text to clipboard.',
-            });
-            console.error('Failed to copy text: ', err);
+  const handleCopy = useCallback(() => {
+    if (!translatedText) return;
+    navigator.clipboard
+      .writeText(translatedText)
+      .then(() => {
+        addToast({
+          variant: "success",
+          title: "Success",
+          message: "Translated text copied to clipboard.",
         });
-    }, [translatedText, addToast]);
+      })
+      .catch((err) => {
+        addToast({
+          variant: "error",
+          title: "Copy Failed",
+          message: "Could not copy text to clipboard.",
+        });
+        console.error("Failed to copy text: ", err);
+      });
+  }, [translatedText, addToast]);
 
-    return (
-        <div className="translation-io">
-            <div className={`translation-io_panel ${isOverLimit ? 'translation-io_panel-error' : ''}`}>
-                <div className="translation-io_header">{inputLanguageLabel}</div>
-                <div className="translation-io_text-area-wrapper">
-                    <textarea
-                        className="translation-io_text-area"
-                        value={inputText}
-                        onChange={(e) => setInputText(e.target.value)}
-                        placeholder="Enter text..."
-                        aria-label="Input text for translation"
-                    />
-                    {inputText && (
-                        <Button
-                            variant="secondary"
-                            iconOnly
-                            buttonShape="circular"
-                            onClick={onClearInput}
-                            title="Clear input text"
-                            className="translation-io_clear-button"
-                        >
-                            ✕
-                        </Button>
-                    )}
-                </div>
-                <div className="translation-io_footer">
-                    <span className={isOverLimit ? 'translation-io_char-count-error' : ''}>
-                        {characterCount.toLocaleString()} / {maxCharacters.toLocaleString()}
-                    </span>
-                    <span>{wordCount} words</span>
-                </div>
-            </div>
-            <div className="translation-io_panel">
-                <div className="translation-io_header">{outputLanguageLabel}</div>
-                <div className="translation-io_text-area-wrapper">
-                {isTranslating ? (
-                    <div className="translation-io_thinking-wrapper">
-                        <ThinkingIndicator />
-                    </div>
-                ) : (
-                    <textarea
-                        className="translation-io_text-area"
-                        value={translatedText}
-                        readOnly
-                        placeholder="Translation"
-                        aria-label="Translated text"
-                    />
-                )}
-                {!isTranslating && translatedText && (
-                    <div className="translation-io_copy-button-wrapper">
-                        <Button
-                            variant="secondary"
-                            onClick={handleCopy}
-                            aria-label="Copy translated text"
-                        >
-                            Copy
-                        </Button>
-                    </div>
-                )}
-                </div>
-            </div>
+  return (
+    <div className="translation-io">
+      <div
+        className={`translation-io_panel ${isOverLimit ? "translation-io_panel-error" : ""}`}
+      >
+        <div className="translation-io_header">{inputLanguageLabel}</div>
+        <div className="translation-io_text-area-wrapper">
+          <textarea
+            className="translation-io_text-area"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            placeholder="Enter text..."
+            aria-label="Input text for translation"
+          />
+          {inputText && (
+            <Button
+              variant="secondary"
+              iconOnly
+              buttonShape="circular"
+              onClick={onClearInput}
+              title="Clear input text"
+              className="translation-io_clear-button"
+            >
+              ✕
+            </Button>
+          )}
         </div>
-    );
+        <div className="translation-io_footer">
+          <span className={isOverLimit ? "translation-io_char-count-error" : ""}>
+            {characterCount.toLocaleString()} / {maxCharacters.toLocaleString()}
+          </span>
+          <span>{wordCount} words</span>
+        </div>
+      </div>
+      <div className="translation-io_panel">
+        <div className="translation-io_header">{outputLanguageLabel}</div>
+        <div className="translation-io_text-area-wrapper">
+          {isTranslating ? (
+            <div className="translation-io_thinking-wrapper">
+              <ThinkingIndicator />
+            </div>
+          ) : (
+            <textarea
+              className="translation-io_text-area"
+              value={translatedText}
+              readOnly
+              placeholder="Translation"
+              aria-label="Translated text"
+            />
+          )}
+          {!isTranslating && translatedText && (
+            <div className="translation-io_copy-button-wrapper">
+              <Button
+                variant="secondary"
+                onClick={handleCopy}
+                aria-label="Copy translated text"
+              >
+                Copy
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 };

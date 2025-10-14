@@ -1,11 +1,14 @@
-import { OLLAMA_API_BASE_URL, OLLAMA_CONNECTION_ERROR_PREFIX } from '../config/constants';
+import {
+  OLLAMA_API_BASE_URL,
+  OLLAMA_CONNECTION_ERROR_PREFIX,
+} from "../config/constants";
 import {
   OllamaTagsResponse,
   DropdownOption,
   OllamaChatRequestBody,
   OllamaChatResponse,
-  OllamaMessage
-} from '../types';
+  OllamaMessage,
+} from "../types";
 
 /**
  * @description Processes caught errors from fetch requests, providing a user-friendly message. It specifically identifies common network errors (e.g., "Failed to fetch") and standardizes them into a message about connecting to Ollama.
@@ -16,16 +19,18 @@ import {
  * - **Error Handling:** This is a pure utility function called by other API service functions within this file to normalize error messages before they are propagated to the UI layer.
  */
 function handleNetworkError(error: unknown): string {
-  if (error instanceof TypeError && (
-    error.message.toLowerCase().includes('failed to fetch') ||
-    error.message.toLowerCase().includes('networkerror') ||
-    error.message.toLowerCase().includes('load failed'))) {
+  if (
+    error instanceof TypeError &&
+    (error.message.toLowerCase().includes("failed to fetch") ||
+      error.message.toLowerCase().includes("networkerror") ||
+      error.message.toLowerCase().includes("load failed"))
+  ) {
     return `${OLLAMA_CONNECTION_ERROR_PREFIX} Ensure it is running (e.g., \`ollama serve\`) and accessible.`;
   }
   if (error instanceof Error) {
     return error.message;
   }
-  return 'An unknown network error occurred.';
+  return "An unknown network error occurred.";
 }
 
 /**
@@ -45,28 +50,31 @@ export async function fetchOllamaModels(): Promise<DropdownOption[]> {
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
     const response = await fetch(`${OLLAMA_API_BASE_URL}/tags`, {
-      signal: controller.signal
+      signal: controller.signal,
     });
 
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch models: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Failed to fetch models: ${response.status} ${response.statusText}`,
+      );
     }
     const data: OllamaTagsResponse = await response.json();
-    return data.models.map(model => ({
+    return data.models.map((model) => ({
       value: model.name,
       label: model.name,
     }));
   } catch (error) {
-    console.error('Error fetching Ollama models:', error);
-    if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error('Request timeout: Ollama server is not responding. Ensure it is running and accessible.');
+    console.error("Error fetching Ollama models:", error);
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(
+        "Request timeout: Ollama server is not responding. Ensure it is running and accessible.",
+      );
     }
     throw new Error(handleNetworkError(error));
   }
 }
-
 
 /**
  * @description Sends a chat completion request to the Ollama API's `/api/chat` endpoint to perform a translation.
@@ -86,7 +94,7 @@ export async function fetchOllamaModels(): Promise<DropdownOption[]> {
 export async function fetchTranslation({
   model,
   messages,
-  options
+  options,
 }: {
   model: string;
   messages: OllamaMessage[];
@@ -104,28 +112,32 @@ export async function fetchTranslation({
     const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout for translations
 
     const response = await fetch(`${OLLAMA_API_BASE_URL}/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(requestBody),
-      signal: controller.signal
+      signal: controller.signal,
     });
 
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: `HTTP error: ${response.status}` }));
-      throw new Error(errorData.error || `Failed to get response from AI: ${response.status}`);
+      const errorData = await response
+        .json()
+        .catch(() => ({ error: `HTTP error: ${response.status}` }));
+      throw new Error(
+        errorData.error || `Failed to get response from AI: ${response.status}`,
+      );
     }
 
     const data: OllamaChatResponse = await response.json();
     return data.message.content;
-
   } catch (error) {
-    console.error('Error communicating with Ollama API:', error);
-    if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error('Translation request timeout. The model may be taking too long to respond.');
+    console.error("Error communicating with Ollama API:", error);
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(
+        "Translation request timeout. The model may be taking too long to respond.",
+      );
     }
     throw new Error(handleNetworkError(error));
   }
 }
-

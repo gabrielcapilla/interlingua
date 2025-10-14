@@ -1,5 +1,5 @@
-import { useContext } from 'react';
-import { ToastContext } from '../providers/ToastProvider';
+import { useContext } from "react";
+import { ToastContext } from "../providers/ToastProvider";
 
 /**
  * @description A custom hook that provides access to the `addToast` function from the `ToastContext`.
@@ -9,7 +9,7 @@ import { ToastContext } from '../providers/ToastProvider';
 export const useToast = () => {
   const context = useContext(ToastContext);
   if (context === undefined) {
-    throw new Error('useToast must be used within a ToastProvider');
+    throw new Error("useToast must be used within a ToastProvider");
   }
   return context;
 };

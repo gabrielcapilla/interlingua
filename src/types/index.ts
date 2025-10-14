@@ -1,19 +1,19 @@
 // Language codes as a union type for better type safety
-export type LanguageCode = 
-  | 'auto'
-  | 'en' 
-  | 'es' 
-  | 'ca' 
-  | 'fr' 
-  | 'de' 
-  | 'it' 
-  | 'pt' 
-  | 'ru' 
-  | 'ja' 
-  | 'ko' 
-  | 'zh' 
-  | 'ar' 
-  | 'hi';
+export type LanguageCode =
+  | "auto"
+  | "en"
+  | "es"
+  | "ca"
+  | "fr"
+  | "de"
+  | "it"
+  | "pt"
+  | "ru"
+  | "ja"
+  | "ko"
+  | "zh"
+  | "ar"
+  | "hi";
 
 export interface DropdownOption {
   value: string;
@@ -44,7 +44,7 @@ export interface OllamaTagsResponse {
 }
 
 export interface OllamaMessage {
-  role: 'user' | 'assistant' | 'system';
+  role: "user" | "assistant" | "system";
   content: string;
 }
 

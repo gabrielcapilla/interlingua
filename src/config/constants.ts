@@ -1,29 +1,29 @@
-import { LanguageOption } from '../types';
+import { LanguageOption } from "../types";
 
 export const languageOptions: LanguageOption[] = [
-  { value: 'auto', label: 'Auto-Detect' },
-  { value: 'en', label: 'English' },
-  { value: 'es', label: 'Spanish' },
-  { value: 'ca', label: 'Catalan' },
-  { value: 'fr', label: 'French' },
-  { value: 'de', label: 'German' },
-  { value: 'it', label: 'Italian' },
-  { value: 'pt', label: 'Portuguese' },
-  { value: 'ru', label: 'Russian' },
-  { value: 'ja', label: 'Japanese' },
-  { value: 'ko', label: 'Korean' },
-  { value: 'zh', label: 'Chinese (Simplified)' },
-  { value: 'ar', label: 'Arabic' },
-  { value: 'hi', label: 'Hindi' },
+  { value: "auto", label: "Auto-Detect" },
+  { value: "en", label: "English" },
+  { value: "es", label: "Spanish" },
+  { value: "ca", label: "Catalan" },
+  { value: "fr", label: "French" },
+  { value: "de", label: "German" },
+  { value: "it", label: "Italian" },
+  { value: "pt", label: "Portuguese" },
+  { value: "ru", label: "Russian" },
+  { value: "ja", label: "Japanese" },
+  { value: "ko", label: "Korean" },
+  { value: "zh", label: "Chinese (Simplified)" },
+  { value: "ar", label: "Arabic" },
+  { value: "hi", label: "Hindi" },
 ];
 
-export const LOCAL_STORAGE_INPUT_LANG_KEY = 'userSelectedInputLanguage';
-export const LOCAL_STORAGE_OUTPUT_LANG_KEY = 'userSelectedOutputLanguage';
-export const OLLAMA_MODEL_STORAGE_KEY = 'ollamaSelectedModel';
-export const FAVORITE_OLLAMA_MODEL_KEY = 'ollamaFavoriteModel';
+export const LOCAL_STORAGE_INPUT_LANG_KEY = "userSelectedInputLanguage";
+export const LOCAL_STORAGE_OUTPUT_LANG_KEY = "userSelectedOutputLanguage";
+export const OLLAMA_MODEL_STORAGE_KEY = "ollamaSelectedModel";
+export const FAVORITE_OLLAMA_MODEL_KEY = "ollamaFavoriteModel";
 
-export const OLLAMA_API_BASE_URL = 'http://localhost:11434/api';
-export const OLLAMA_CONNECTION_ERROR_PREFIX = 'Could not connect to Ollama.';
+export const OLLAMA_API_BASE_URL = "http://localhost:11434/api";
+export const OLLAMA_CONNECTION_ERROR_PREFIX = "Could not connect to Ollama.";
 
 export const MAX_INPUT_CHARACTERS = 6400;
 

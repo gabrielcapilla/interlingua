@@ -1,117 +1,119 @@
 .custom-dropdown {
-  position: relative;
-  min-width: 180px;
+    position: relative;
+    min-width: 180px;
 }
 
 .custom-dropdown_trigger {
-  font-family: var(--font-family-base);
-  font-size: var(--font-size-300);
-  font-weight: var(--font-weight-regular);
-  color: var(--color-text-1);
-  background-color: var(--color-bg-1);
-  border: var(--stroke-width-thick) solid var(--color-stroke-1);
-  border-radius: var(--border-radius-medium);
-  padding: var(--spacing-s) var(--spacing-l) var(--spacing-s) var(--spacing-m);
-  width: 100%;
-  cursor: pointer;
-  text-align: left;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 4px 4px 0 0 var(--color-shadow);
-  transition: all var(--duration-fast) var(--curve-easy-ease);
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-300);
+    font-weight: var(--font-weight-regular);
+    color: var(--color-text-1);
+    background-color: var(--color-bg-1);
+    border: var(--stroke-width-thick) solid var(--color-stroke-1);
+    border-radius: var(--border-radius-medium);
+    padding: var(--spacing-s) var(--spacing-l) var(--spacing-s) var(--spacing-m);
+    width: 100%;
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 4px 4px 0 0 var(--color-shadow);
+    transition: all var(--duration-fast) var(--curve-easy-ease);
 }
 
 .custom-dropdown_trigger:hover:not(:disabled) {
-  border-color: var(--color-stroke-hover);
-  background-color: var(--color-bg-hover);
-  transform: translate(-4px, -4px);
-  box-shadow: 4px 4px 0 0 var(--color-accent-yellow),
-    6px 6px 0 0 var(--color-shadow),
-    8px 8px 0 0 var(--color-accent-red),
-    10px 10px 0 0 var(--color-shadow);
+    border-color: var(--color-stroke-hover);
+    background-color: var(--color-bg-hover);
+    transform: translate(-4px, -4px);
+    box-shadow:
+        4px 4px 0 0 var(--color-accent-yellow),
+        6px 6px 0 0 var(--color-shadow),
+        8px 8px 0 0 var(--color-accent-red),
+        10px 10px 0 0 var(--color-shadow);
 }
 
 .custom-dropdown_trigger:focus-visible:not(:disabled) {
-  outline: var(--stroke-width-thick) solid var(--color-stroke-focus);
-  outline-offset: 2px;
-  border-color: var(--color-stroke-focus);
+    outline: var(--stroke-width-thick) solid var(--color-stroke-focus);
+    outline-offset: 2px;
+    border-color: var(--color-stroke-focus);
 }
 
 .custom-dropdown_trigger[disabled] {
-  background-color: var(--color-bg-disabled);
-  border-color: var(--color-stroke-disabled);
-  color: var(--color-text-disabled);
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+    background-color: var(--color-bg-disabled);
+    border-color: var(--color-stroke-disabled);
+    color: var(--color-text-disabled);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
 .custom-dropdown_trigger[disabled] .custom-dropdown_arrow {
-  opacity: 0.5;
+    opacity: 0.5;
 }
 
 .custom-dropdown_arrow {
-  width: 8px;
-  height: 8px;
-  border-style: solid;
-  border-width: 0 var(--stroke-width-thick) var(--stroke-width-thick) 0;
-  display: inline-block;
-  transform: rotate(45deg);
-  transition: transform var(--duration-fast) var(--curve-easy-ease);
-  flex-shrink: 0;
-  margin-left: var(--spacing-m);
+    width: 8px;
+    height: 8px;
+    border-style: solid;
+    border-width: 0 var(--stroke-width-thick) var(--stroke-width-thick) 0;
+    display: inline-block;
+    transform: rotate(45deg);
+    transition: transform var(--duration-fast) var(--curve-easy-ease);
+    flex-shrink: 0;
+    margin-left: var(--spacing-m);
 }
 
-.custom-dropdown_trigger[aria-expanded='true'] .custom-dropdown_arrow {
-  transform: rotate(-135deg);
+.custom-dropdown_trigger[aria-expanded="true"] .custom-dropdown_arrow {
+    transform: rotate(-135deg);
 }
 
 .custom-dropdown_options {
-  position: absolute;
-  top: calc(100% + var(--spacing-s));
-  left: 0;
-  right: 0;
-  background-color: var(--color-bg-1);
-  border: var(--stroke-width-thick) solid var(--color-stroke-1);
-  border-radius: var(--border-radius-large);
-  box-shadow: 4px 4px 0 0 var(--color-shadow);
-  margin: 0;
-  padding: var(--spacing-xs);
-  list-style: none;
-  z-index: 100;
-  max-height: 320px;
-  overflow-y: auto;
+    position: absolute;
+    top: calc(100% + var(--spacing-s));
+    left: 0;
+    right: 0;
+    background-color: var(--color-bg-1);
+    border: var(--stroke-width-thick) solid var(--color-stroke-1);
+    border-radius: var(--border-radius-large);
+    box-shadow: 4px 4px 0 0 var(--color-shadow);
+    margin: 0;
+    padding: var(--spacing-xs);
+    list-style: none;
+    z-index: 100;
+    max-height: 320px;
+    overflow-y: auto;
 }
 
 .custom-dropdown_options-columns-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-xs);
-  min-width: 300px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xs);
+    min-width: 300px;
 }
 
 .custom-dropdown_option {
-  font-family: var(--font-family-base);
-  font-size: var(--font-size-300);
-  font-weight: var(--font-weight-regular);
-  color: var(--color-text-1);
-  padding: var(--spacing-s) var(--spacing-m);
-  cursor: pointer;
-  border-radius: var(--border-radius-small);
-  transition: background-color var(--duration-fast) var(--curve-easy-ease),
-    color var(--duration-fast) var(--curve-easy-ease);
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-300);
+    font-weight: var(--font-weight-regular);
+    color: var(--color-text-1);
+    padding: var(--spacing-s) var(--spacing-m);
+    cursor: pointer;
+    border-radius: var(--border-radius-small);
+    transition:
+        background-color var(--duration-fast) var(--curve-easy-ease),
+        color var(--duration-fast) var(--curve-easy-ease);
 }
 
 .custom-dropdown_option:hover {
-  background-color: var(--color-bg-hover);
+    background-color: var(--color-bg-hover);
 }
 
 .custom-dropdown_option-selected {
-  background-color: var(--color-brand-bg);
-  color: var(--color-text-inverted);
+    background-color: var(--color-brand-bg);
+    color: var(--color-text-inverted);
 }
 
 .custom-dropdown_option-selected:hover {
-  background-color: var(--color-brand-bg-hover);
+    background-color: var(--color-brand-bg-hover);
 }

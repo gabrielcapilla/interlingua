@@ -1,6 +1,6 @@
 // import React from 'react';
-import { TranslationPage } from './pages/TranslationPage';
-import { ToastProvider } from './providers/ToastProvider';
+import { TranslationPage } from "./pages/TranslationPage";
+import { ToastProvider } from "./providers/ToastProvider";
 
 /**
  * @description The main application component. It serves as the root of the React component tree and is responsible for rendering the primary layout and pages of the application.

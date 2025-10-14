@@ -1,4 +1,4 @@
-import { useState, useEffect, Dispatch, SetStateAction } from 'react';
+import { useState, useEffect, Dispatch, SetStateAction } from "react";
 
 /**
  * @description A custom React hook that creates a state variable that persists its value in the browser's localStorage. It mirrors the `useState` API but adds the side effect of synchronization with localStorage.
@@ -13,7 +13,10 @@ import { useState, useEffect, Dispatch, SetStateAction } from 'react';
  *   - `localStorage.setItem(key, value)`: Called inside `useEffect` whenever the state changes.
  * - **Serialization:** Uses `JSON.parse()` to deserialize the stored string and `JSON.stringify()` to serialize the state value for storage. It includes error handling for these operations.
  */
-function usePersistentState<T>(key: string, defaultValue: T): [T, Dispatch<SetStateAction<T>>] {
+function usePersistentState<T>(
+  key: string,
+  defaultValue: T,
+): [T, Dispatch<SetStateAction<T>>] {
   const [state, setState] = useState<T>(() => {
     try {
       const storedValue = localStorage.getItem(key);

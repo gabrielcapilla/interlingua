@@ -1,7 +1,7 @@
-import { useState, useCallback, useRef } from 'react';
-import { OllamaMessage } from '../types';
-import { languageOptions, translationSystemPrompt } from '../config/constants';
-import { fetchTranslation } from '../services/ollamaApi';
+import { useState, useCallback, useRef } from "react";
+import { OllamaMessage } from "../types";
+import { languageOptions, translationSystemPrompt } from "../config/constants";
+import { fetchTranslation } from "../services/ollamaApi";
 
 interface UseTranslationProps {
   selectedModel: string;
@@ -42,88 +42,112 @@ interface UseTranslationReturn {
  *   - Provides a specific, clearer prompt when 'Auto-Detect' is selected to improve reliability.
  *   - Adds a dialect clarification ("from Catalonia") to the prompt when "Catalan" is selected as a source or target language.
  */
-function useTranslation({ selectedModel, inputLanguage, outputLanguage }: UseTranslationProps): UseTranslationReturn {
-  const [translatedText, setTranslatedText] = useState<string>('');
+function useTranslation({
+  selectedModel,
+  inputLanguage,
+  outputLanguage,
+}: UseTranslationProps): UseTranslationReturn {
+  const [translatedText, setTranslatedText] = useState<string>("");
   const [isTranslating, setIsTranslating] = useState<boolean>(false);
   const [translationError, setTranslationError] = useState<string | null>(null);
-  
+
   // Track the current request ID to handle race conditions
   const currentRequestId = useRef(0);
   const isTranslatingRef = useRef(false);
 
   const getLanguageLabelWithDialect = useCallback((langCode: string): string => {
-    const lang = languageOptions.find(l => l.value === langCode);
+    const lang = languageOptions.find((l) => l.value === langCode);
     if (!lang) return langCode;
-    if (lang.value === 'ca') {
+    if (lang.value === "ca") {
       return `${lang.label} (from Catalonia)`;
     }
     return lang.label;
   }, []);
 
-  const translateText = useCallback(async (text: string) => {
-    const textToTranslate = text.trim();
-    if (!textToTranslate || !selectedModel || isTranslatingRef.current) return;
+  const translateText = useCallback(
+    async (text: string) => {
+      const textToTranslate = text.trim();
+      if (!textToTranslate || !selectedModel || isTranslatingRef.current) return;
 
-    // Generate a unique request ID for this translation
-    const requestId = ++currentRequestId.current;
-    
-    // Check if we're already translating the same text to prevent duplicate requests
-    if (textToTranslate === translatedText && !translationError) {
-      return;
-    }
+      // Generate a unique request ID for this translation
+      const requestId = ++currentRequestId.current;
 
-    isTranslatingRef.current = true;
-    setIsTranslating(true);
-    setTranslationError(null);
-    // Only clear the translated text if it's a different request
-    if (requestId !== currentRequestId.current - 1) {
-      setTranslatedText('');
-    }
-
-    const outputLangLabel = getLanguageLabelWithDialect(outputLanguage);
-
-    let userMessageContent: string;
-
-    if (inputLanguage === 'auto') {
-      userMessageContent = `Detect the language of the following text and then translate it to ${outputLangLabel}. Your response must contain ONLY the translated text, without any additional comments or explanations.\n\n${textToTranslate}`;
-    } else {
-      const inputLangLabel = getLanguageLabelWithDialect(inputLanguage);
-      userMessageContent = `Translate the following text from ${inputLangLabel} to ${outputLangLabel}:\n\n${textToTranslate}`;
-    }
-
-    const messages: OllamaMessage[] = [
-      { role: 'system', content: translationSystemPrompt },
-      { role: 'user', content: userMessageContent }
-    ];
-
-    try {
-      const translation = await fetchTranslation({
-        model: selectedModel,
-        messages,
-        options: { temperature: 0.2, seed: 42, top_k: 20, top_p: 0.7 },
-      });
-
-      // Only update state if this is the most recent request
-      if (requestId === currentRequestId.current) {
-        setTranslatedText(translation);
+      // Check if we're already translating the same text to prevent duplicate requests
+      if (textToTranslate === translatedText && !translationError) {
+        return;
       }
-    } catch (error) {
-      // Only update error state if this is the most recent request
-      if (requestId === currentRequestId.current) {
-        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-        setTranslationError(errorMessage);
-        setTranslatedText('');
-      }
-    } finally {
-      // Only update loading state if this is the most recent request
-      if (requestId === currentRequestId.current) {
-        setIsTranslating(false);
-      }
-      isTranslatingRef.current = false;
-    }
-  }, [selectedModel, inputLanguage, outputLanguage, setTranslatedText, setTranslationError, translatedText, translationError, getLanguageLabelWithDialect]);
 
-  return { translatedText, isTranslating, translationError, setTranslationError, translateText, setTranslatedText };
+      isTranslatingRef.current = true;
+      setIsTranslating(true);
+      setTranslationError(null);
+      // Only clear the translated text if it's a different request
+      if (requestId !== currentRequestId.current - 1) {
+        setTranslatedText("");
+      }
+
+      const outputLangLabel = getLanguageLabelWithDialect(outputLanguage);
+
+      let userMessageContent: string;
+
+      if (inputLanguage === "auto") {
+        userMessageContent = `Detect the language of the following text and then translate it to ${outputLangLabel}. Your response must contain ONLY the translated text, without any additional comments or explanations.\n\n${textToTranslate}`;
+      } else {
+        const inputLangLabel = getLanguageLabelWithDialect(inputLanguage);
+        userMessageContent = `Translate the following text from ${inputLangLabel} to ${outputLangLabel}:\n\n${textToTranslate}`;
+      }
+
+      const messages: OllamaMessage[] = [
+        { role: "system", content: translationSystemPrompt },
+        { role: "user", content: userMessageContent },
+      ];
+
+      try {
+        const translation = await fetchTranslation({
+          model: selectedModel,
+          messages,
+          options: { temperature: 0.2, seed: 42, top_k: 20, top_p: 0.7 },
+        });
+
+        // Only update state if this is the most recent request
+        if (requestId === currentRequestId.current) {
+          setTranslatedText(translation);
+        }
+      } catch (error) {
+        // Only update error state if this is the most recent request
+        if (requestId === currentRequestId.current) {
+          const errorMessage =
+            error instanceof Error ? error.message : "An unknown error occurred.";
+          setTranslationError(errorMessage);
+          setTranslatedText("");
+        }
+      } finally {
+        // Only update loading state if this is the most recent request
+        if (requestId === currentRequestId.current) {
+          setIsTranslating(false);
+        }
+        isTranslatingRef.current = false;
+      }
+    },
+    [
+      selectedModel,
+      inputLanguage,
+      outputLanguage,
+      setTranslatedText,
+      setTranslationError,
+      translatedText,
+      translationError,
+      getLanguageLabelWithDialect,
+    ],
+  );
+
+  return {
+    translatedText,
+    isTranslating,
+    translationError,
+    setTranslationError,
+    translateText,
+    setTranslatedText,
+  };
 }
 
 export default useTranslation;

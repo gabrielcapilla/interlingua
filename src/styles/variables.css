@@ -5,124 +5,128 @@
  */
 
 :root {
-  /**
+    /**
    * @group Typography
    * @description Defines the main typography system.
    * A monospaced font is used for a technical and consistent aesthetic,
    * with a robust fallback stack to maximize compatibility.
    */
-  --font-family-base: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  --font-family-monospace: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --font-family-base:
+        "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        "Liberation Mono", "Courier New", monospace;
+    --font-family-monospace:
+        "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        "Liberation Mono", "Courier New", monospace;
 
-  --font-size-100: 10px;
-  --font-size-200: 12px;
-  --font-size-300: 14px;
-  --font-size-400: 16px;
-  --font-size-500: 20px;
-  --font-size-600: 24px;
+    --font-size-100: 10px;
+    --font-size-200: 12px;
+    --font-size-300: 14px;
+    --font-size-400: 16px;
+    --font-size-500: 20px;
+    --font-size-600: 24px;
 
-  --line-height-100: 16px;
-  --line-height-200: 16px;
-  --line-height-300: 20px;
-  --line-height-400: 24px;
-  --line-height-500: 28px;
-  --line-height-600: 32px;
+    --line-height-100: 16px;
+    --line-height-200: 16px;
+    --line-height-300: 20px;
+    --line-height-400: 24px;
+    --line-height-500: 28px;
+    --line-height-600: 32px;
 
-  --font-weight-regular: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
 
-  /**
+    /**
    * @group Shape & Borders
    * @description Defines the border radius to control the curvature of corners.
    */
-  --border-radius-none: 0px;
-  --border-radius-small: 4px;
-  --border-radius-medium: 6px;
-  --border-radius-large: 8px;
-  --border-radius-circular: 100%;
+    --border-radius-none: 0px;
+    --border-radius-small: 4px;
+    --border-radius-medium: 6px;
+    --border-radius-large: 8px;
+    --border-radius-circular: 100%;
 
-  /**
+    /**
    * @group Spacing
    * @description Defines a consistent scale for spacing (margins, paddings, etc.)
    * to create rhythmic and balanced layouts.
    */
-  --spacing-xs: 4px;
-  --spacing-s: 8px;
-  --spacing-m: 12px;
-  --spacing-l: 16px;
-  --spacing-xl: 20px;
-  --spacing-xxl: 24px;
+    --spacing-xs: 4px;
+    --spacing-s: 8px;
+    --spacing-m: 12px;
+    --spacing-l: 16px;
+    --spacing-xl: 20px;
+    --spacing-xxl: 24px;
 
-  /**
+    /**
    * @group Motion
    * @description Defines tokens for animations and transitions.
    */
-  --duration-fast: 150ms;
-  --curve-easy-ease: cubic-bezier(0.33, 0, 0.67, 1);
+    --duration-fast: 150ms;
+    --curve-easy-ease: cubic-bezier(0.33, 0, 0.67, 1);
 
-  /**
+    /**
    * @group Strokes
    * @description Defines the thickness of borders and strokes.
    */
-  --stroke-width-thick: 2px;
+    --stroke-width-thick: 2px;
 
-  /**
+    /**
    * @group Color Palette (Light Theme)
    * Flexoki: https://github.com/kepano/flexoki
    * @description Defines the base color palette for the light theme.
    */
-  --color-bg-1-light: #FFFCF0;
-  --color-bg-2-light: #F2F0E5;
-  --color-bg-hover-light: #F2F0E5;
-  --color-bg-disabled-light: #E6E4D9;
-  --color-text-1-light: #100F0F;
-  --color-text-2-light: #6F6E69;
-  --color-text-3-light: #B7B5AC;
-  --color-text-disabled-light: #B7B5AC;
-  --color-text-inverted-light: #FFFCF0;
-  --color-stroke-1-light: #100F0F;
-  --color-stroke-hover-light: #6F6E69;
-  --color-stroke-disabled-light: #CECDC3;
-  --color-stroke-focus-light: #4385BE;
-  --color-brand-bg-light: #A02F6F;
-  --color-brand-bg-hover-light: #CE5D97;
-  --color-brand-bg-disabled-light: #E6E4D9;
-  --color-shadow-light: #100F0F;
-  --color-accent-yellow-light: #D0A215;
-  --color-accent-red-light: #D14D41;
-  --color-accent-green-light: #4A9A54;
-  --color-accent-blue-light: #4385BE;
-  --color-subtle-bg-hover-light: rgba(16, 15, 15, 0.08);
+    --color-bg-1-light: #fffcf0;
+    --color-bg-2-light: #f2f0e5;
+    --color-bg-hover-light: #f2f0e5;
+    --color-bg-disabled-light: #e6e4d9;
+    --color-text-1-light: #100f0f;
+    --color-text-2-light: #6f6e69;
+    --color-text-3-light: #b7b5ac;
+    --color-text-disabled-light: #b7b5ac;
+    --color-text-inverted-light: #fffcf0;
+    --color-stroke-1-light: #100f0f;
+    --color-stroke-hover-light: #6f6e69;
+    --color-stroke-disabled-light: #cecdc3;
+    --color-stroke-focus-light: #4385be;
+    --color-brand-bg-light: #a02f6f;
+    --color-brand-bg-hover-light: #ce5d97;
+    --color-brand-bg-disabled-light: #e6e4d9;
+    --color-shadow-light: #100f0f;
+    --color-accent-yellow-light: #d0a215;
+    --color-accent-red-light: #d14d41;
+    --color-accent-green-light: #4a9a54;
+    --color-accent-blue-light: #4385be;
+    --color-subtle-bg-hover-light: rgba(16, 15, 15, 0.08);
 
-  /**
+    /**
    * @group Color Palette (Dark Theme)
    * Flexoki: https://github.com/kepano/flexoki
    * @description Defines the base color palette for the dark theme.
    */
-  --color-bg-1-dark: #100F0F;
-  --color-bg-2-dark: #1C1B1A;
-  --color-bg-hover-dark: #1C1B1A;
-  --color-bg-disabled-dark: #282726;
-  --color-text-1-dark: #CECDC3;
-  --color-text-2-dark: #878580;
-  --color-text-3-dark: #575653;
-  --color-text-disabled-dark: #575653;
-  --color-text-inverted-dark: #100F0F;
-  --color-stroke-1-dark: #CECDC3;
-  --color-stroke-hover-dark: #878580;
-  --color-stroke-disabled-dark: #403E3C;
-  --color-stroke-focus-dark: #4385BE;
-  --color-brand-bg-dark: #CE5D97;
-  --color-brand-bg-hover-dark: #D689B1;
-  --color-brand-bg-disabled-dark: #403E3C;
-  --color-shadow-dark: #000000;
-  --color-accent-yellow-dark: #D0A215;
-  --color-accent-red-dark: #D14D41;
-  --color-accent-green-dark: #66B36F;
-  --color-accent-blue-dark: #63A3D9;
-  --color-subtle-bg-hover-dark: rgba(255, 252, 240, 0.1);
+    --color-bg-1-dark: #100f0f;
+    --color-bg-2-dark: #1c1b1a;
+    --color-bg-hover-dark: #1c1b1a;
+    --color-bg-disabled-dark: #282726;
+    --color-text-1-dark: #cecdc3;
+    --color-text-2-dark: #878580;
+    --color-text-3-dark: #575653;
+    --color-text-disabled-dark: #575653;
+    --color-text-inverted-dark: #100f0f;
+    --color-stroke-1-dark: #cecdc3;
+    --color-stroke-hover-dark: #878580;
+    --color-stroke-disabled-dark: #403e3c;
+    --color-stroke-focus-dark: #4385be;
+    --color-brand-bg-dark: #ce5d97;
+    --color-brand-bg-hover-dark: #d689b1;
+    --color-brand-bg-disabled-dark: #403e3c;
+    --color-shadow-dark: #000000;
+    --color-accent-yellow-dark: #d0a215;
+    --color-accent-red-dark: #d14d41;
+    --color-accent-green-dark: #66b36f;
+    --color-accent-blue-dark: #63a3d9;
+    --color-subtle-bg-hover-dark: rgba(255, 252, 240, 0.1);
 }
 
 /**
@@ -132,29 +136,29 @@
  * The light theme is applied by default.
  */
 :root {
-  --color-bg-1: var(--color-bg-1-light);
-  --color-bg-2: var(--color-bg-2-light);
-  --color-bg-hover: var(--color-bg-hover-light);
-  --color-bg-disabled: var(--color-bg-disabled-light);
-  --color-text-1: var(--color-text-1-light);
-  --color-text-2: var(--color-text-2-light);
-  --color-text-3: var(--color-text-3-light);
-  --color-text-disabled: var(--color-text-disabled-light);
-  --color-text-inverted: var(--color-text-inverted-light);
-  --color-stroke-1: var(--color-stroke-1-light);
-  --color-stroke-hover: var(--color-stroke-hover-light);
-  --color-stroke-disabled: var(--color-stroke-disabled-light);
-  --color-stroke-focus: var(--color-stroke-focus-light);
-  --color-brand-bg: var(--color-brand-bg-light);
-  --color-brand-bg-hover: var(--color-brand-bg-hover-light);
-  --color-brand-bg-disabled: var(--color-brand-bg-disabled-light);
-  --color-shadow: var(--color-shadow-light);
-  --color-accent-yellow: var(--color-accent-yellow-light);
-  --color-accent-red: var(--color-accent-red-light);
-  --color-accent-green: var(--color-accent-green-light);
-  --color-accent-blue: var(--color-accent-blue-light);
-  --color-subtle-bg-hover: var(--color-subtle-bg-hover-light);
-  --color-transparent-bg-hover: rgba(16, 15, 15, 0.05);
+    --color-bg-1: var(--color-bg-1-light);
+    --color-bg-2: var(--color-bg-2-light);
+    --color-bg-hover: var(--color-bg-hover-light);
+    --color-bg-disabled: var(--color-bg-disabled-light);
+    --color-text-1: var(--color-text-1-light);
+    --color-text-2: var(--color-text-2-light);
+    --color-text-3: var(--color-text-3-light);
+    --color-text-disabled: var(--color-text-disabled-light);
+    --color-text-inverted: var(--color-text-inverted-light);
+    --color-stroke-1: var(--color-stroke-1-light);
+    --color-stroke-hover: var(--color-stroke-hover-light);
+    --color-stroke-disabled: var(--color-stroke-disabled-light);
+    --color-stroke-focus: var(--color-stroke-focus-light);
+    --color-brand-bg: var(--color-brand-bg-light);
+    --color-brand-bg-hover: var(--color-brand-bg-hover-light);
+    --color-brand-bg-disabled: var(--color-brand-bg-disabled-light);
+    --color-shadow: var(--color-shadow-light);
+    --color-accent-yellow: var(--color-accent-yellow-light);
+    --color-accent-red: var(--color-accent-red-light);
+    --color-accent-green: var(--color-accent-green-light);
+    --color-accent-blue: var(--color-accent-blue-light);
+    --color-subtle-bg-hover: var(--color-subtle-bg-hover-light);
+    --color-transparent-bg-hover: rgba(16, 15, 15, 0.05);
 }
 
 /**
@@ -163,29 +167,29 @@
  * prefers a dark color scheme.
  */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg-1: var(--color-bg-1-dark);
-    --color-bg-2: var(--color-bg-2-dark);
-    --color-bg-hover: var(--color-bg-hover-dark);
-    --color-bg-disabled: var(--color-bg-disabled-dark);
-    --color-text-1: var(--color-text-1-dark);
-    --color-text-2: var(--color-text-2-dark);
-    --color-text-3: var(--color-text-3-dark);
-    --color-text-disabled: var(--color-text-disabled-dark);
-    --color-text-inverted: var(--color-text-inverted-dark);
-    --color-stroke-1: var(--color-stroke-1-dark);
-    --color-stroke-hover: var(--color-stroke-hover-dark);
-    --color-stroke-disabled: var(--color-stroke-disabled-dark);
-    --color-stroke-focus: var(--color-stroke-focus-dark);
-    --color-brand-bg: var(--color-brand-bg-dark);
-    --color-brand-bg-hover: var(--color-brand-bg-hover-dark);
-    --color-brand-bg-disabled: var(--color-brand-bg-disabled-dark);
-    --color-shadow: var(--color-shadow-dark);
-    --color-accent-yellow: var(--color-accent-yellow-dark);
-    --color-accent-red: var(--color-accent-red-dark);
-    --color-accent-green: var(--color-accent-green-dark);
-    --color-accent-blue: var(--color-accent-blue-dark);
-    --color-subtle-bg-hover: var(--color-subtle-bg-hover-dark);
-    --color-transparent-bg-hover: rgba(255, 252, 240, 0.07);
-  }
+    :root {
+        --color-bg-1: var(--color-bg-1-dark);
+        --color-bg-2: var(--color-bg-2-dark);
+        --color-bg-hover: var(--color-bg-hover-dark);
+        --color-bg-disabled: var(--color-bg-disabled-dark);
+        --color-text-1: var(--color-text-1-dark);
+        --color-text-2: var(--color-text-2-dark);
+        --color-text-3: var(--color-text-3-dark);
+        --color-text-disabled: var(--color-text-disabled-dark);
+        --color-text-inverted: var(--color-text-inverted-dark);
+        --color-stroke-1: var(--color-stroke-1-dark);
+        --color-stroke-hover: var(--color-stroke-hover-dark);
+        --color-stroke-disabled: var(--color-stroke-disabled-dark);
+        --color-stroke-focus: var(--color-stroke-focus-dark);
+        --color-brand-bg: var(--color-brand-bg-dark);
+        --color-brand-bg-hover: var(--color-brand-bg-hover-dark);
+        --color-brand-bg-disabled: var(--color-brand-bg-disabled-dark);
+        --color-shadow: var(--color-shadow-dark);
+        --color-accent-yellow: var(--color-accent-yellow-dark);
+        --color-accent-red: var(--color-accent-red-dark);
+        --color-accent-green: var(--color-accent-green-dark);
+        --color-accent-blue: var(--color-accent-blue-dark);
+        --color-subtle-bg-hover: var(--color-subtle-bg-hover-dark);
+        --color-transparent-bg-hover: rgba(255, 252, 240, 0.07);
+    }
 }

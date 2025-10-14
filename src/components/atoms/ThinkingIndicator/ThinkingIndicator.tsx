@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 /**
  * @description Renders a visual indicator with a pulsing animation to signify a loading or "thinking" state. This component is purely presentational.

@@ -1,72 +1,72 @@
 .switch {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-m);
-  cursor: pointer;
-  font-family: var(--font-family-base);
-  font-size: var(--font-size-300);
-  color: var(--color-text-1);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-m);
+    cursor: pointer;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-300);
+    color: var(--color-text-1);
 }
 
 .switch_input {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
 }
 
 .switch_track {
-  width: 44px;
-  height: 24px;
-  background-color: var(--color-bg-1);
-  border: var(--stroke-width-thick) solid var(--color-stroke-1);
-  border-radius: var(--border-radius-large);
-  box-shadow: 4px 4px 0 0 var(--color-shadow);
-  position: relative;
-  transition: all var(--duration-fast) var(--curve-easy-ease);
+    width: 44px;
+    height: 24px;
+    background-color: var(--color-bg-1);
+    border: var(--stroke-width-thick) solid var(--color-stroke-1);
+    border-radius: var(--border-radius-large);
+    box-shadow: 4px 4px 0 0 var(--color-shadow);
+    position: relative;
+    transition: all var(--duration-fast) var(--curve-easy-ease);
 }
 
 .switch_thumb {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 16px;
-  height: 16px;
-  background-color: var(--color-stroke-1);
-  border-radius: var(--border-radius-small);
-  transition: transform var(--duration-fast) var(--curve-easy-ease);
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background-color: var(--color-stroke-1);
+    border-radius: var(--border-radius-small);
+    transition: transform var(--duration-fast) var(--curve-easy-ease);
 }
 
 .switch:hover .switch_track {
-  border-color: var(--color-stroke-hover);
+    border-color: var(--color-stroke-hover);
 }
 
-.switch_input:checked+.switch_track {
-  background-color: var(--color-brand-bg);
-  border-color: var(--color-brand-bg);
+.switch_input:checked + .switch_track {
+    background-color: var(--color-brand-bg);
+    border-color: var(--color-brand-bg);
 }
 
-.switch_input:checked+.switch_track .switch_thumb {
-  transform: translateX(20px);
-  background-color: var(--color-text-inverted);
+.switch_input:checked + .switch_track .switch_thumb {
+    transform: translateX(20px);
+    background-color: var(--color-text-inverted);
 }
 
-.switch_input:focus-visible+.switch_track {
-  outline: var(--stroke-width-thick) solid var(--color-stroke-focus);
-  outline-offset: 2px;
+.switch_input:focus-visible + .switch_track {
+    outline: var(--stroke-width-thick) solid var(--color-stroke-focus);
+    outline-offset: 2px;
 }
 
 .switch_disabled {
-  cursor: not-allowed;
-  color: var(--color-text-disabled);
+    cursor: not-allowed;
+    color: var(--color-text-disabled);
 }
 
 .switch_disabled .switch_track {
-  background-color: var(--color-bg-disabled);
-  border-color: var(--color-stroke-disabled);
-  box-shadow: none;
+    background-color: var(--color-bg-disabled);
+    border-color: var(--color-stroke-disabled);
+    box-shadow: none;
 }
 
 .switch_disabled .switch_track .switch_thumb {
-  background-color: var(--color-text-disabled);
+    background-color: var(--color-text-disabled);
 }

@@ -1,13 +1,18 @@
-import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
-import { useOllamaModels, useLanguageSelection, useTranslation, useToast } from '../../hooks';
-import { languageOptions, MAX_INPUT_CHARACTERS } from '../../config/constants';
-import { TranslationIO } from '../../components/organisms/TranslationIO';
-import { AppHeader } from '../../components/molecules/AppHeader';
-import { AppFooter } from '../../components/molecules/Footer';
-import { Button } from '../../components/atoms/Button';
-import { CustomDropdown } from '../../components/molecules/CustomDropdown';
+import React, { useState, useRef, useMemo, useCallback, useEffect } from "react";
+import {
+  useOllamaModels,
+  useLanguageSelection,
+  useTranslation,
+  useToast,
+} from "../../hooks";
+import { languageOptions, MAX_INPUT_CHARACTERS } from "../../config/constants";
+import { TranslationIO } from "../../components/organisms/TranslationIO";
+import { AppHeader } from "../../components/molecules/AppHeader";
+import { AppFooter } from "../../components/molecules/Footer";
+import { Button } from "../../components/atoms/Button";
+import { CustomDropdown } from "../../components/molecules/CustomDropdown";
 
-const FILE_INPUT_ACCEPT = '.txt,.md,.json,.html,.csv,.xml,.rtf';
+const FILE_INPUT_ACCEPT = ".txt,.md,.json,.html,.csv,.xml,.rtf";
 
 /**
  * @description Renders the main translation page, acting as the primary container and controller for the application. It integrates various hooks for state management and orchestrates the UI components for text input, file uploads, language/model selection, and initiating translations.
@@ -34,7 +39,7 @@ const FILE_INPUT_ACCEPT = '.txt,.md,.json,.html,.csv,.xml,.rtf';
  * - **Constants:** Imports `languageOptions` and `fileInputAccept` for configuring UI elements.
  */
 export const TranslationPage: React.FC = () => {
-  const [inputText, setInputText] = useState('');
+  const [inputText, setInputText] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { addToast } = useToast();
 
@@ -76,21 +81,25 @@ export const TranslationPage: React.FC = () => {
   }, [inputText, selectedModel, isTranslating, translateText, isOverLimit]);
 
   // Store the last translated text to prevent redundant translations
-  const lastTranslatedTextRef = useRef<string>('');
+  const lastTranslatedTextRef = useRef<string>("");
 
   useEffect(() => {
     // Clear translation when input is empty
     if (!inputText.trim()) {
-      setTranslatedText('');
+      setTranslatedText("");
       setTranslationError(null);
-      lastTranslatedTextRef.current = '';
+      lastTranslatedTextRef.current = "";
       return;
     }
 
     // Only auto-translate for auto-detect mode
-    if (inputLanguage === 'auto') {
+    if (inputLanguage === "auto") {
       // Don't translate if we're already translating the same text
-      if (inputText === lastTranslatedTextRef.current && translatedText && !translationError) {
+      if (
+        inputText === lastTranslatedTextRef.current &&
+        translatedText &&
+        !translationError
+      ) {
         return;
       }
 
@@ -110,40 +119,50 @@ export const TranslationPage: React.FC = () => {
     } else {
       // For non-auto-detect mode, clear translation when languages change
       // but not when text changes (manual translation)
-      lastTranslatedTextRef.current = '';
+      lastTranslatedTextRef.current = "";
     }
-  }, [inputText, selectedModel, inputLanguage, translateText, setTranslatedText, setTranslationError, isOverLimit, translatedText, translationError]);
+  }, [
+    inputText,
+    selectedModel,
+    inputLanguage,
+    translateText,
+    setTranslatedText,
+    setTranslationError,
+    isOverLimit,
+    translatedText,
+    translationError,
+  ]);
 
   useEffect(() => {
     // Only clear translation when languages change, not on every render
-    setTranslatedText('');
+    setTranslatedText("");
     setTranslationError(null);
-    lastTranslatedTextRef.current = '';
+    lastTranslatedTextRef.current = "";
   }, [inputLanguage, outputLanguage]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Check for Ctrl+Enter or Cmd+Enter for manual translation
-      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
-        if (inputLanguage !== 'auto') {
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+        if (inputLanguage !== "auto") {
           event.preventDefault();
           handleTranslateClick();
         }
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [inputLanguage, handleTranslateClick]);
 
   useEffect(() => {
     if (modelError) {
       addToast({
-        variant: modelError.startsWith('No Ollama models found') ? 'warning' : 'error',
-        title: 'Model Error',
+        variant: modelError.startsWith("No Ollama models found") ? "warning" : "error",
+        title: "Model Error",
         message: modelError,
       });
     }
@@ -152,8 +171,8 @@ export const TranslationPage: React.FC = () => {
   useEffect(() => {
     if (translationError) {
       addToast({
-        variant: 'error',
-        title: 'Translation Error',
+        variant: "error",
+        title: "Translation Error",
         message: translationError,
       });
       // Clear the error after showing it so it doesn't re-appear on re-render.
@@ -161,55 +180,57 @@ export const TranslationPage: React.FC = () => {
     }
   }, [translationError, addToast, setTranslationError]);
 
+  const handleFileChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
 
-  const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setTranslationError(null);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const text = e.target?.result as string;
-        if (text.length > MAX_INPUT_CHARACTERS) {
-          addToast({
-            variant: 'error',
-            title: 'File Too Large',
-            message: `File content exceeds the character limit of ${MAX_INPUT_CHARACTERS.toLocaleString()}.`,
-          });
-          return;
+      setTranslationError(null);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const text = e.target?.result as string;
+          if (text.length > MAX_INPUT_CHARACTERS) {
+            addToast({
+              variant: "error",
+              title: "File Too Large",
+              message: `File content exceeds the character limit of ${MAX_INPUT_CHARACTERS.toLocaleString()}.`,
+            });
+            return;
+          }
+          setInputText(text);
+          setTranslatedText("");
+        } catch (readError) {
+          const message = `Error processing file: ${readError instanceof Error ? readError.message : "Unknown error"}`;
+          addToast({ variant: "error", title: "File Error", message });
         }
-        setInputText(text);
-        setTranslatedText('');
-      } catch (readError) {
-        const message = `Error processing file: ${readError instanceof Error ? readError.message : 'Unknown error'}`;
-        addToast({ variant: 'error', title: 'File Error', message });
-      }
-    };
-    reader.onerror = () => {
-      const message = `Error reading file: ${file.name}`;
-      addToast({ variant: 'error', title: 'File Error', message });
-    };
-    reader.readAsText(file);
+      };
+      reader.onerror = () => {
+        const message = `Error reading file: ${file.name}`;
+        addToast({ variant: "error", title: "File Error", message });
+      };
+      reader.readAsText(file);
 
-    if (event.target) {
-      event.target.value = '';
-    }
-  }, [addToast, setInputText, setTranslatedText]);
+      if (event.target) {
+        event.target.value = "";
+      }
+    },
+    [addToast, setInputText, setTranslatedText],
+  );
 
   const handleLoadDocument = useCallback(() => {
     fileInputRef.current?.click();
   }, []);
 
   const handleClear = useCallback(() => {
-    setInputText('');
-    setTranslatedText('');
+    setInputText("");
+    setTranslatedText("");
     setTranslationError(null);
   }, [setInputText, setTranslatedText, setTranslationError]);
 
   const handleFavoriteClick = useCallback(() => {
     if (!selectedModel) return;
-    const newFavorite = selectedModel === favoriteModel ? '' : selectedModel;
+    const newFavorite = selectedModel === favoriteModel ? "" : selectedModel;
     setFavoriteModel(newFavorite);
     // Perhaps this is redundant??
     // addToast({
@@ -221,33 +242,35 @@ export const TranslationPage: React.FC = () => {
   }, [selectedModel, favoriteModel, setFavoriteModel]);
 
   const characterCount = useMemo(() => inputText.length, [inputText]);
-  const wordCount = useMemo(() =>
-    inputText.trim() ? inputText.trim().split(/\s+/).length : 0,
-    [inputText]
+  const wordCount = useMemo(
+    () => (inputText.trim() ? inputText.trim().split(/\s+/).length : 0),
+    [inputText],
   );
 
-  const outputLanguageOptions = useMemo(() =>
-    languageOptions.filter(option => option.value !== 'auto'),
-    []
+  const outputLanguageOptions = useMemo(
+    () => languageOptions.filter((option) => option.value !== "auto"),
+    [],
   );
 
-  const inputLanguageLabel = useMemo(() =>
-    languageOptions.find(l => l.value === inputLanguage)?.label || 'Source',
-    [inputLanguage]
+  const inputLanguageLabel = useMemo(
+    () => languageOptions.find((l) => l.value === inputLanguage)?.label || "Source",
+    [inputLanguage],
   );
 
-  const outputLanguageLabel = useMemo(() =>
-    languageOptions.find(l => l.value === outputLanguage)?.label || 'Translation',
-    [outputLanguage]
+  const outputLanguageLabel = useMemo(
+    () =>
+      languageOptions.find((l) => l.value === outputLanguage)?.label || "Translation",
+    [outputLanguage],
   );
 
-  const isModelSelectorDisabled = useMemo(() =>
-    isLoadingModels || !!modelError || ollamaModels.length === 0,
-    [isLoadingModels, modelError, ollamaModels.length]
+  const isModelSelectorDisabled = useMemo(
+    () => isLoadingModels || !!modelError || ollamaModels.length === 0,
+    [isLoadingModels, modelError, ollamaModels.length],
   );
 
   const getTranslateButtonTitle = useCallback(() => {
-    if (isOverLimit) return `Input exceeds character limit of ${MAX_INPUT_CHARACTERS.toLocaleString()}`;
+    if (isOverLimit)
+      return `Input exceeds character limit of ${MAX_INPUT_CHARACTERS.toLocaleString()}`;
     if (!selectedModel || !!modelError) return "A model must be selected to translate";
     return "Translate the input text (Ctrl+Enter)";
   }, [isOverLimit, selectedModel, modelError]);
@@ -257,7 +280,7 @@ export const TranslationPage: React.FC = () => {
       <input
         type="file"
         ref={fileInputRef}
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
         onChange={handleFileChange}
         accept={FILE_INPUT_ACCEPT}
       />
@@ -280,8 +303,12 @@ export const TranslationPage: React.FC = () => {
                 iconOnly
                 onClick={handleLanguageSwap}
                 aria-label="Swap languages"
-                title={inputLanguage === 'auto' ? "Cannot swap with Auto-Detect" : "Swap languages"}
-                disabled={inputLanguage === 'auto'}
+                title={
+                  inputLanguage === "auto"
+                    ? "Cannot swap with Auto-Detect"
+                    : "Swap languages"
+                }
+                disabled={inputLanguage === "auto"}
               >
                 ⇆
               </Button>
@@ -294,7 +321,9 @@ export const TranslationPage: React.FC = () => {
                 columns={2}
               />
             </div>
-            <div className={`model-selector ${isModelSelectorDisabled ? 'model-selector_disabled' : ''}`}>
+            <div
+              className={`model-selector ${isModelSelectorDisabled ? "model-selector_disabled" : ""}`}
+            >
               <CustomDropdown
                 className="model-selector_dropdown"
                 options={ollamaModels}
@@ -310,11 +339,19 @@ export const TranslationPage: React.FC = () => {
                 buttonShape="circular"
                 onClick={handleFavoriteClick}
                 disabled={!selectedModel || isLoadingModels}
-                title={selectedModel === favoriteModel ? "Unset as favorite model" : "Set as favorite model"}
-                aria-label={selectedModel === favoriteModel ? "Unset as favorite model" : "Set as favorite model"}
+                title={
+                  selectedModel === favoriteModel
+                    ? "Unset as favorite model"
+                    : "Set as favorite model"
+                }
+                aria-label={
+                  selectedModel === favoriteModel
+                    ? "Unset as favorite model"
+                    : "Set as favorite model"
+                }
                 className="model-selector_favorite-button"
               >
-                {selectedModel && selectedModel === favoriteModel ? '★' : '☆'}
+                {selectedModel && selectedModel === favoriteModel ? "★" : "☆"}
               </Button>
             </div>
           </div>
@@ -336,24 +373,29 @@ export const TranslationPage: React.FC = () => {
 
         <div className="action-buttons">
           <Button
-            variant={inputLanguage !== 'auto' ? 'secondary' : 'primary'}
+            variant={inputLanguage !== "auto" ? "secondary" : "primary"}
             onClick={handleLoadDocument}
             disabled={isTranslating}
           >
             Translate Document
           </Button>
-          {inputLanguage !== 'auto' && (
+          {inputLanguage !== "auto" && (
             <Button
               variant="primary"
               onClick={handleTranslateClick}
-              disabled={!inputText.trim() || isTranslating || !selectedModel || !!modelError || isOverLimit}
+              disabled={
+                !inputText.trim() ||
+                isTranslating ||
+                !selectedModel ||
+                !!modelError ||
+                isOverLimit
+              }
               title={getTranslateButtonTitle()}
             >
               Translate
             </Button>
           )}
         </div>
-
       </main>
       <AppFooter />
     </div>

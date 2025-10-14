@@ -1,1 +1,1 @@
-export * from './ThinkingIndicator';
+export * from "./ThinkingIndicator";

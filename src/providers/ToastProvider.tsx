@@ -1,7 +1,7 @@
-import React, { createContext, useState, useCallback, ReactNode } from 'react';
-import { Toast } from '../components/atoms/Toast';
+import React, { createContext, useState, useCallback, ReactNode } from "react";
+import { Toast } from "../components/atoms/Toast";
 
-type ToastVariant = 'info' | 'success' | 'warning' | 'error';
+type ToastVariant = "info" | "success" | "warning" | "error";
 
 export interface ToastMessage {
   id: string;
@@ -12,7 +12,7 @@ export interface ToastMessage {
 }
 
 interface ToastContextType {
-  addToast: (toast: Omit<ToastMessage, 'id'>) => void;
+  addToast: (toast: Omit<ToastMessage, "id">) => void;
 }
 
 export const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -34,25 +34,21 @@ interface ToastProviderProps {
 export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  const addToast = useCallback((toast: Omit<ToastMessage, 'id'>) => {
+  const addToast = useCallback((toast: Omit<ToastMessage, "id">) => {
     const id = Date.now().toString() + Math.random().toString();
-    setToasts(prevToasts => [...prevToasts, { ...toast, id }]);
+    setToasts((prevToasts) => [...prevToasts, { ...toast, id }]);
   }, []);
 
   const removeToast = useCallback((id: string) => {
-    setToasts(prevToasts => prevToasts.filter(toast => toast.id !== id));
+    setToasts((prevToasts) => prevToasts.filter((toast) => toast.id !== id));
   }, []);
 
   return (
     <ToastContext.Provider value={{ addToast }}>
       {children}
       <div className="toast-container">
-        {toasts.map(toast => (
-          <Toast
-            key={toast.id}
-            {...toast}
-            onDismiss={() => removeToast(toast.id)}
-          />
+        {toasts.map((toast) => (
+          <Toast key={toast.id} {...toast} onDismiss={() => removeToast(toast.id)} />
         ))}
       </div>
     </ToastContext.Provider>

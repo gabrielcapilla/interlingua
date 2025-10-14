@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '../Button';
+import React, { useState, useEffect } from "react";
+import { Button } from "../Button";
 
-type ToastVariant = 'info' | 'success' | 'warning' | 'error';
+type ToastVariant = "info" | "success" | "warning" | "error";
 
 interface ToastProps {
   id: string;
@@ -13,10 +13,10 @@ interface ToastProps {
 }
 
 const variantIcons: Record<ToastVariant, string> = {
-  info: 'ℹ',
-  success: '✓',
-  warning: '⚠',
-  error: '✕',
+  info: "ℹ",
+  success: "✓",
+  warning: "⚠",
+  error: "✕",
 };
 
 export const Toast: React.FC<ToastProps> = ({
@@ -50,11 +50,9 @@ export const Toast: React.FC<ToastProps> = ({
     setIsExiting(true);
   };
 
-  const classNames = [
-    'toast',
-    `toast_${variant}`,
-    isExiting ? 'toast_exiting' : '',
-  ].filter(Boolean).join(' ');
+  const classNames = ["toast", `toast_${variant}`, isExiting ? "toast_exiting" : ""]
+    .filter(Boolean)
+    .join(" ");
 
   const icon = variantIcons[variant];
 

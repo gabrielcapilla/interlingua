@@ -1,42 +1,41 @@
 @keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
 
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.5;
-    transform: scale(0.75);
-  }
+    50% {
+        opacity: 0.5;
+        transform: scale(0.75);
+    }
 }
 
 .thinking-indicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: var(--line-height-300);
-  padding: var(--spacing-s) 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: var(--line-height-300);
+    padding: var(--spacing-s) 0;
 }
 
 .thinking-indicator_dot {
-  background-color: var(--color-text-3);
-  width: 8px;
-  height: 8px;
-  border-radius: 0px;
-  margin: 0 2px;
-  animation: pulse 1.2s infinite ease-in-out;
+    background-color: var(--color-text-3);
+    width: 8px;
+    height: 8px;
+    border-radius: 0px;
+    margin: 0 2px;
+    animation: pulse 1.2s infinite ease-in-out;
 }
 
 .thinking-indicator_dot:nth-child(1) {
-  animation-delay: -0.32s;
+    animation-delay: -0.32s;
 }
 
 .thinking-indicator_dot:nth-child(2) {
-  animation-delay: -0.16s;
+    animation-delay: -0.16s;
 }
 
 .thinking-indicator_dot:nth-child(3) {
-  animation-delay: 0s;
+    animation-delay: 0s;
 }

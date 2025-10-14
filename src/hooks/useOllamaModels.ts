@@ -1,8 +1,11 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { DropdownOption } from '../types';
-import { OLLAMA_MODEL_STORAGE_KEY, FAVORITE_OLLAMA_MODEL_KEY } from '../config/constants';
-import usePersistentState from './usePersistentState';
-import { fetchOllamaModels as fetchModelsFromApi } from '../services/ollamaApi';
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { DropdownOption } from "../types";
+import {
+  OLLAMA_MODEL_STORAGE_KEY,
+  FAVORITE_OLLAMA_MODEL_KEY,
+} from "../config/constants";
+import usePersistentState from "./usePersistentState";
+import { fetchOllamaModels as fetchModelsFromApi } from "../services/ollamaApi";
 
 interface UseOllamaModelsReturn {
   ollamaModels: DropdownOption[];
@@ -37,8 +40,14 @@ interface UseOllamaModelsReturn {
  */
 function useOllamaModels(): UseOllamaModelsReturn {
   const [rawModels, setRawModels] = useState<DropdownOption[]>([]);
-  const [favoriteModel, setFavoriteModel] = usePersistentState<string>(FAVORITE_OLLAMA_MODEL_KEY, '');
-  const [selectedModel, setSelectedModel] = usePersistentState<string>(OLLAMA_MODEL_STORAGE_KEY, '');
+  const [favoriteModel, setFavoriteModel] = usePersistentState<string>(
+    FAVORITE_OLLAMA_MODEL_KEY,
+    "",
+  );
+  const [selectedModel, setSelectedModel] = usePersistentState<string>(
+    OLLAMA_MODEL_STORAGE_KEY,
+    "",
+  );
   const [isLoadingModels, setIsLoadingModels] = useState<boolean>(true);
   const [modelError, setModelError] = useState<string | null>(null);
 
@@ -50,14 +59,14 @@ function useOllamaModels(): UseOllamaModelsReturn {
       setRawModels(formattedModels);
 
       if (formattedModels.length > 0) {
-        setSelectedModel(prevSelected => {
+        setSelectedModel((prevSelected) => {
           // Only update if we don't already have a valid selection
-          if (prevSelected && formattedModels.some(m => m.value === prevSelected)) {
+          if (prevSelected && formattedModels.some((m) => m.value === prevSelected)) {
             return prevSelected;
           }
 
           // Prefer favorite model if available
-          const favoriteExists = formattedModels.some(m => m.value === favoriteModel);
+          const favoriteExists = formattedModels.some((m) => m.value === favoriteModel);
           if (favoriteExists) {
             return favoriteModel;
           }
@@ -66,14 +75,15 @@ function useOllamaModels(): UseOllamaModelsReturn {
           return formattedModels[0].value;
         });
       } else {
-        setSelectedModel('');
-        setModelError('No Ollama models found. Ensure models are pulled in Ollama.');
+        setSelectedModel("");
+        setModelError("No Ollama models found. Ensure models are pulled in Ollama.");
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+      const errorMessage =
+        error instanceof Error ? error.message : "An unknown error occurred.";
       setModelError(errorMessage);
       setRawModels([]);
-      setSelectedModel('');
+      setSelectedModel("");
     } finally {
       setIsLoadingModels(false);
     }
@@ -84,18 +94,17 @@ function useOllamaModels(): UseOllamaModelsReturn {
   }, [fetchOllamaModels]);
 
   useEffect(() => {
-    if (favoriteModel && rawModels.some(m => m.value === favoriteModel)) {
+    if (favoriteModel && rawModels.some((m) => m.value === favoriteModel)) {
       setSelectedModel(favoriteModel);
     }
   }, [favoriteModel, rawModels, setSelectedModel]);
 
   const ollamaModels = useMemo(() => {
-    return rawModels.map(model => ({
+    return rawModels.map((model) => ({
       ...model,
       label: model.value === favoriteModel ? `${model.label} ★` : model.label,
     }));
   }, [rawModels, favoriteModel]);
-
 
   let dropdownPlaceholder: string;
   if (isLoadingModels) {

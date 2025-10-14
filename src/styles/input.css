@@ -1,51 +1,52 @@
 .input {
-  font-family: var(--font-family-base);
-  font-size: var(--font-size-300);
-  line-height: var(--line-height-300);
-  color: var(--color-text-1);
-  background-color: var(--color-bg-1);
-  border: var(--stroke-width-thick) solid var(--color-stroke-1);
-  border-radius: var(--border-radius-medium);
-  padding: var(--spacing-s) var(--spacing-m);
-  width: 100%;
-  box-shadow: 4px 4px 0 0 var(--color-shadow);
-  transition: all var(--duration-fast) var(--curve-easy-ease);
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-300);
+    line-height: var(--line-height-300);
+    color: var(--color-text-1);
+    background-color: var(--color-bg-1);
+    border: var(--stroke-width-thick) solid var(--color-stroke-1);
+    border-radius: var(--border-radius-medium);
+    padding: var(--spacing-s) var(--spacing-m);
+    width: 100%;
+    box-shadow: 4px 4px 0 0 var(--color-shadow);
+    transition: all var(--duration-fast) var(--curve-easy-ease);
 }
 
 .input::placeholder {
-  color: var(--color-text-3);
+    color: var(--color-text-3);
 }
 
 .input:hover:not(:disabled) {
-  background-color: var(--color-bg-hover);
+    background-color: var(--color-bg-hover);
 }
 
 .input:focus {
-  outline: none;
-  transform: translate(-4px, -4px);
-  box-shadow: 4px 4px 0 0 var(--color-accent-yellow),
-    6px 6px 0 0 var(--color-shadow),
-    8px 8px 0 0 var(--color-accent-red),
-    10px 10px 0 0 var(--color-shadow);
-  border-color: var(--color-stroke-focus);
+    outline: none;
+    transform: translate(-4px, -4px);
+    box-shadow:
+        4px 4px 0 0 var(--color-accent-yellow),
+        6px 6px 0 0 var(--color-shadow),
+        8px 8px 0 0 var(--color-accent-red),
+        10px 10px 0 0 var(--color-shadow);
+    border-color: var(--color-stroke-focus);
 }
 
 .input:disabled {
-  background-color: var(--color-bg-disabled);
-  border-color: var(--color-stroke-disabled);
-  color: var(--color-text-disabled);
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+    background-color: var(--color-bg-disabled);
+    border-color: var(--color-stroke-disabled);
+    color: var(--color-text-disabled);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
 .form-control {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-s);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-s);
 }
 
 .form-control label {
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-2);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-2);
 }
