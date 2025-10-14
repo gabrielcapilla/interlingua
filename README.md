@@ -2,7 +2,7 @@
 
 Interlingua is a clean, modern, and locally-run translation application. It leverages the power of local AI models via [Ollama](https://ollama.com/) to provide fast, private, and accurate translations directly on your machine.
 
-![image](/img/light-mode.webp)
+![image](/img/preview.webp)
 
 ## Key Features
 
