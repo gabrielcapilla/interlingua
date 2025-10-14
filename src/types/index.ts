@@ -1,6 +1,27 @@
+// Language codes as a union type for better type safety
+export type LanguageCode = 
+  | 'auto'
+  | 'en' 
+  | 'es' 
+  | 'ca' 
+  | 'fr' 
+  | 'de' 
+  | 'it' 
+  | 'pt' 
+  | 'ru' 
+  | 'ja' 
+  | 'ko' 
+  | 'zh' 
+  | 'ar' 
+  | 'hi';
+
 export interface DropdownOption {
   value: string;
   label: string;
+}
+
+export interface LanguageOption extends DropdownOption {
+  value: LanguageCode;
 }
 
 export interface OllamaModel {
