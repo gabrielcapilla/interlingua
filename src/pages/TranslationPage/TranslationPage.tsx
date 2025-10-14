@@ -7,7 +7,7 @@ import { AppFooter } from '../../components/molecules/Footer';
 import { Button } from '../../components/atoms/Button';
 import { CustomDropdown } from '../../components/molecules/CustomDropdown';
 
-const fileInputAccept = '.txt,.md,.json,.html,.csv,.xml,.rtf';
+const FILE_INPUT_ACCEPT = '.txt,.md,.json,.html,.csv,.xml,.rtf';
 
 /**
  * @description Renders the main translation page, acting as the primary container and controller for the application. It integrates various hooks for state management and orchestrates the UI components for text input, file uploads, language/model selection, and initiating translations.
@@ -162,7 +162,7 @@ export const TranslationPage: React.FC = () => {
   }, [translationError, addToast, setTranslationError]);
 
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -195,19 +195,19 @@ export const TranslationPage: React.FC = () => {
     if (event.target) {
       event.target.value = '';
     }
-  };
+  }, [addToast, setInputText, setTranslatedText]);
 
-  const handleLoadDocument = () => {
+  const handleLoadDocument = useCallback(() => {
     fileInputRef.current?.click();
-  };
+  }, []);
 
   const handleClear = useCallback(() => {
     setInputText('');
     setTranslatedText('');
     setTranslationError(null);
-  }, [setTranslatedText, setTranslationError]);
+  }, [setInputText, setTranslatedText, setTranslationError]);
 
-  const handleFavoriteClick = () => {
+  const handleFavoriteClick = useCallback(() => {
     if (!selectedModel) return;
     const newFavorite = selectedModel === favoriteModel ? '' : selectedModel;
     setFavoriteModel(newFavorite);
@@ -218,7 +218,7 @@ export const TranslationPage: React.FC = () => {
     //   message: newFavorite ? `Set '${newFavorite}' as favorite.` : 'Favorite model cleared.',
     //   duration: 3000,
     // });
-  };
+  }, [selectedModel, favoriteModel, setFavoriteModel]);
 
   const characterCount = useMemo(() => inputText.length, [inputText]);
   const wordCount = useMemo(() =>
@@ -259,7 +259,7 @@ export const TranslationPage: React.FC = () => {
         ref={fileInputRef}
         style={{ display: 'none' }}
         onChange={handleFileChange}
-        accept={fileInputAccept}
+        accept={FILE_INPUT_ACCEPT}
       />
       <AppHeader title="Interlingua" />
       <main className="main-content">
@@ -270,7 +270,7 @@ export const TranslationPage: React.FC = () => {
                 className="language-selectors_dropdown"
                 options={languageOptions}
                 value={inputLanguage}
-                onChange={(value) => setInputLanguage(value)}
+                onChange={setInputLanguage}
                 aria-label="Select input language"
                 columns={2}
               />
@@ -289,7 +289,7 @@ export const TranslationPage: React.FC = () => {
                 className="language-selectors_dropdown"
                 options={outputLanguageOptions}
                 value={outputLanguage}
-                onChange={(value) => setOutputLanguage(value)}
+                onChange={setOutputLanguage}
                 aria-label="Select output language"
                 columns={2}
               />
@@ -299,7 +299,7 @@ export const TranslationPage: React.FC = () => {
                 className="model-selector_dropdown"
                 options={ollamaModels}
                 value={selectedModel}
-                onChange={(value) => setSelectedModel(value)}
+                onChange={setSelectedModel}
                 placeholder={dropdownPlaceholder}
                 aria-label="Select AI Model"
                 disabled={isModelSelectorDisabled}
