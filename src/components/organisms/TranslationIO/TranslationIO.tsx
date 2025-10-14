@@ -41,7 +41,7 @@ interface TranslationIOProps {
  * - **Browser API:** Uses `navigator.clipboard.writeText` to copy the translated text to the user's clipboard.
  * - **CSS:** Relies on the `.translation-io` BEM block in `index.css` for its entire layout and styling, including panels, headers, text areas, and footers.
  */
-export const TranslationIO: React.FC<TranslationIOProps> = ({
+const TranslationIOComponent: React.FC<TranslationIOProps> = ({
   inputText,
   setInputText,
   translatedText,
@@ -143,3 +143,5 @@ export const TranslationIO: React.FC<TranslationIOProps> = ({
     </div>
   );
 };
+
+export const TranslationIO = React.memo(TranslationIOComponent);

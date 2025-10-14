@@ -2,14 +2,12 @@ import React from "react";
 
 /**
  * @description Renders the main footer for the application. It displays the app name, version, copyright, author, and a link to a GitHub profile.
- * @returns {React.ReactElement} The rendered application footer component.
  * @interactions
  * - **CSS:** Relies on the `.app-footer` and `.app-footer_link` classes in `index.css` for its layout and styling.
  * - **Parent Component:** Rendered by `TranslationPage` to provide a consistent footer at the bottom of the page.
  */
-export const AppFooter: React.FC = () => {
+const AppFooterComponent: React.FC = () => {
   const currentYear = new Date().getFullYear();
-  // Using placeholder values as requested
   const authorName = "Gabriel Capilla";
   const githubUrl = "https://github.com/gabrielcapilla";
 
@@ -30,3 +28,5 @@ export const AppFooter: React.FC = () => {
     </footer>
   );
 };
+
+export const AppFooter = React.memo(AppFooterComponent);

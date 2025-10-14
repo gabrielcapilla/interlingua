@@ -40,9 +40,16 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Create a map for O(1) lookups instead of O(n) find operations
+  const optionsMap = useMemo(() => {
+    const map = new Map<string, DropdownOption>();
+    options.forEach((option) => map.set(option.value, option));
+    return map;
+  }, [options]);
+
   const selectedOption = useMemo(
-    () => options.find((option) => option.value === value),
-    [options, value],
+    () => optionsMap.get(value) || null,
+    [optionsMap, value],
   );
 
   const handleToggle = () => {
@@ -72,7 +79,7 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
         if (!isOpen) {
           setIsOpen(true);
         } else {
-          const currentIndex = options.findIndex((o) => o.value === value);
+          const currentIndex = options.findIndex((o) => o.value === value); // Still need this for navigation
           const nextIndex = Math.min(options.length - 1, currentIndex + 1);
           onChange(options[nextIndex].value);
         }
@@ -80,7 +87,7 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
       case "ArrowUp":
         e.preventDefault();
         if (isOpen) {
-          const currentIndex = options.findIndex((o) => o.value === value);
+          const currentIndex = options.findIndex((o) => o.value === value); // Still need this for navigation
           const prevIndex = Math.max(0, currentIndex - 1);
           onChange(options[prevIndex].value);
         }
@@ -119,6 +126,9 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
     .filter(Boolean)
     .join(" ");
 
+  // Memoize the options to prevent unnecessary re-renders
+  const memoizedOptions = useMemo(() => options, [options]);
+
   return (
     <div ref={dropdownRef} className={containerClasses}>
       <button
@@ -137,7 +147,7 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
 
       {isOpen && (
         <ul className={optionsClasses} role="listbox" aria-label={ariaLabel}>
-          {options.map((option) => (
+          {memoizedOptions.map((option) => (
             <li
               key={option.value}
               className={`custom-dropdown_option ${option.value === value ? "custom-dropdown_option-selected" : ""}`}

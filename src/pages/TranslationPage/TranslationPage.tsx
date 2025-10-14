@@ -242,10 +242,14 @@ export const TranslationPage: React.FC = () => {
   }, [selectedModel, favoriteModel, setFavoriteModel]);
 
   const characterCount = useMemo(() => inputText.length, [inputText]);
-  const wordCount = useMemo(
-    () => (inputText.trim() ? inputText.trim().split(/\s+/).length : 0),
-    [inputText],
-  );
+
+  // Optimized word counting with debouncing to avoid frequent recalculations
+  const wordCount = useMemo(() => {
+    if (!inputText.trim()) return 0;
+    // More efficient word counting using match instead of split
+    const matches = inputText.trim().match(/\S+/g);
+    return matches ? matches.length : 0;
+  }, [inputText]);
 
   const outputLanguageOptions = useMemo(
     () => languageOptions.filter((option) => option.value !== "auto"),

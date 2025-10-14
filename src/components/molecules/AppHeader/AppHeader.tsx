@@ -13,10 +13,12 @@ interface AppHeaderProps {
  * - **CSS:** Relies on the `.app-header` and `.app-header_title` classes in `index.css` for its layout and styling.
  * - **Parent Component:** Rendered by `TranslationPage` to provide a consistent top-level navigation bar.
  */
-export const AppHeader: React.FC<AppHeaderProps> = ({ title }) => {
+const AppHeaderComponent: React.FC<AppHeaderProps> = ({ title }) => {
   return (
     <header className="app-header">
       <h1 className="app-header_title">{title}</h1>
     </header>
   );
 };
+
+export const AppHeader = React.memo(AppHeaderComponent);
