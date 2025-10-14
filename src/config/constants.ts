@@ -1,6 +1,6 @@
-import { DropdownOption } from '../types';
+import { LanguageOption } from '../types';
 
-export const languageOptions: DropdownOption[] = [
+export const languageOptions: LanguageOption[] = [
   { value: 'auto', label: 'Auto-Detect' },
   { value: 'en', label: 'English' },
   { value: 'es', label: 'Spanish' },
