@@ -1,6 +1,6 @@
 # Interlingua
 
-![image](/img/preview.webp)
+![image](preview.webp)
 
 A locally-run translation application powered by [Ollama](https://ollama.com/). Private, fast, and accurate translations directly on your machine.
 
