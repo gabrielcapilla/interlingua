@@ -1,131 +1,99 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { DropdownOption } from "../types";
-import {
-  OLLAMA_MODEL_STORAGE_KEY,
-  FAVORITE_OLLAMA_MODEL_KEY,
-} from "../config/constants";
+import { STORAGE_KEYS } from "../data";
 import usePersistentState from "./usePersistentState";
 import { fetchOllamaModels as fetchModelsFromApi } from "../services/ollamaApi";
+import { addFavoriteMarker, selectInitialModel } from "../utils/transforms";
 
-interface UseOllamaModelsReturn {
+interface OllamaModelsState {
   ollamaModels: DropdownOption[];
   selectedModel: string;
-  setSelectedModel: React.Dispatch<React.SetStateAction<string>>;
   favoriteModel: string;
-  setFavoriteModel: React.Dispatch<React.SetStateAction<string>>;
   isLoadingModels: boolean;
   modelError: string | null;
   dropdownPlaceholder: string;
+  setSelectedModel: React.Dispatch<React.SetStateAction<string>>;
+  setFavoriteModel: React.Dispatch<React.SetStateAction<string>>;
   fetchOllamaModels: () => Promise<void>;
 }
 
-/**
- * @description Custom hook to manage fetching Ollama models, handling selection, and persisting the choice. It encapsulates all logic related to the model list, including loading states, error handling, and providing dynamic UI text. It also manages a "favorite" model, which is used as the default selection.
- * @returns {UseOllamaModelsReturn} An object containing all the necessary state and functions for managing Ollama models.
- * @property {DropdownOption[]} ollamaModels - An array of available models, formatted for the `Dropdown` component, with the favorite model's label decorated with a star.
- * @property {string} selectedModel - The name of the currently selected model.
- * @property {React.Dispatch<React.SetStateAction<string>>} setSelectedModel - The state setter for `selectedModel`.
- * @property {string} favoriteModel - The name of the user's favorite model.
- * @property {React.Dispatch<React.SetStateAction<string>>} setFavoriteModel - The state setter for `favoriteModel`.
- * @property {boolean} isLoadingModels - A flag that is true while models are being fetched from the API.
- * @property {string | null} modelError - An error message string if the fetch fails, otherwise null.
- * @property {string} dropdownPlaceholder - A dynamic placeholder text for the model selection dropdown, reflecting the current state (loading, error, etc.).
- * @property {() => Promise<void>} fetchOllamaModels - A function to manually trigger a refetch of the models.
- * @interactions
- * - **React Hooks:** Utilizes `useState`, `useEffect`, `useCallback`, and `useMemo`.
- * - **Custom Hooks:** Uses `usePersistentState` to store and retrieve `selectedModel` and `favoriteModel` from localStorage.
- * - **Services:** Calls `fetchModelsFromApi` from `ollamaApi.ts` to perform the actual network request.
- * - **State Management:** Manages internal states for `rawModels`, `isLoadingModels`, and `modelError`. It derives `ollamaModels` and `dropdownPlaceholder`.
- * - **Constants:** Uses `OLLAMA_MODEL_STORAGE_KEY` and `FAVORITE_OLLAMA_MODEL_KEY` for localStorage.
- */
-function useOllamaModels(): UseOllamaModelsReturn {
+const useOllamaModels = (): OllamaModelsState => {
   const [rawModels, setRawModels] = useState<DropdownOption[]>([]);
   const [favoriteModel, setFavoriteModel] = usePersistentState<string>(
-    FAVORITE_OLLAMA_MODEL_KEY,
+    STORAGE_KEYS.FAVORITE_MODEL,
     "",
   );
   const [selectedModel, setSelectedModel] = usePersistentState<string>(
-    OLLAMA_MODEL_STORAGE_KEY,
+    STORAGE_KEYS.SELECTED_MODEL,
     "",
   );
-  const [isLoadingModels, setIsLoadingModels] = useState<boolean>(true);
-  const [modelError, setModelError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const fetchOllamaModels = useCallback(async () => {
-    setIsLoadingModels(true);
-    setModelError(null);
+  const fetchModels = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
     try {
-      const formattedModels = await fetchModelsFromApi();
-      setRawModels(formattedModels);
+      const models = await fetchModelsFromApi();
+      setRawModels(models);
 
-      if (formattedModels.length > 0) {
-        setSelectedModel((prevSelected) => {
-          // Only update if we don't already have a valid selection
-          if (prevSelected && formattedModels.some((m) => m.value === prevSelected)) {
-            return prevSelected;
-          }
-
-          // Prefer favorite model if available
-          const favoriteExists = formattedModels.some((m) => m.value === favoriteModel);
-          if (favoriteExists) {
-            return favoriteModel;
-          }
-
-          // Fall back to first model
-          return formattedModels[0].value;
-        });
-      } else {
+      if (models.length === 0) {
+        setError("No Ollama models found. Ensure models are pulled in Ollama.");
         setSelectedModel("");
-        setModelError("No Ollama models found. Ensure models are pulled in Ollama.");
+        return;
       }
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "An unknown error occurred.";
-      setModelError(errorMessage);
+
+      setSelectedModel(
+        selectInitialModel(selectedModel, favoriteModel, models),
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
       setRawModels([]);
       setSelectedModel("");
     } finally {
-      setIsLoadingModels(false);
+      setIsLoading(false);
     }
-  }, [setSelectedModel, favoriteModel]);
+  }, [favoriteModel, setSelectedModel, selectedModel]);
 
   useEffect(() => {
-    fetchOllamaModels();
-  }, [fetchOllamaModels]);
+    fetchModels();
+  }, [fetchModels]);
 
   useEffect(() => {
-    if (favoriteModel && rawModels.some((m) => m.value === favoriteModel)) {
+    const favoriteExists =
+      favoriteModel && rawModels.some((m) => m.value === favoriteModel);
+    if (favoriteExists && !selectedModel) {
       setSelectedModel(favoriteModel);
     }
-  }, [favoriteModel, rawModels, setSelectedModel]);
+  }, [favoriteModel, rawModels, selectedModel, setSelectedModel]);
 
-  const ollamaModels = useMemo(() => {
-    return rawModels.map((model) => ({
-      ...model,
-      label: model.value === favoriteModel ? `${model.label} ★` : model.label,
-    }));
-  }, [rawModels, favoriteModel]);
+  const models = useMemo(
+    () => addFavoriteMarker(rawModels, favoriteModel),
+    [rawModels, favoriteModel],
+  );
 
-  let dropdownPlaceholder: string;
-  if (isLoadingModels) {
-    dropdownPlaceholder = "Loading models...";
-  } else if (modelError || ollamaModels.length === 0) {
-    dropdownPlaceholder = "No models available";
-  } else {
-    dropdownPlaceholder = "Select a model";
-  }
+  const placeholder = useMemo(
+    () =>
+      isLoading
+        ? "Loading models..."
+        : error || models.length === 0
+          ? "No models available"
+          : "Select a model",
+    [isLoading, error, models.length],
+  );
 
   return {
-    ollamaModels,
+    ollamaModels: models,
     selectedModel,
-    setSelectedModel,
     favoriteModel,
+    isLoadingModels: isLoading,
+    modelError: error,
+    dropdownPlaceholder: placeholder,
+    setSelectedModel,
     setFavoriteModel,
-    isLoadingModels,
-    modelError,
-    dropdownPlaceholder,
-    fetchOllamaModels,
+    fetchOllamaModels: fetchModels,
   };
-}
+};
 
 export default useOllamaModels;

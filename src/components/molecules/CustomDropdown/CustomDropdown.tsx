@@ -1,5 +1,12 @@
-import React, { useState, useRef, useEffect, KeyboardEvent, useMemo } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  KeyboardEvent,
+} from "react";
 import { DropdownOption } from "../../../types";
+import { cn } from "../../../utils/cn";
 
 interface CustomDropdownProps {
   options: DropdownOption[];
@@ -12,21 +19,9 @@ interface CustomDropdownProps {
   columns?: 1 | 2;
 }
 
-/**
- * @description Renders a fully custom, accessible, and themeable dropdown component, designed to replace the native HTML <select> element. It provides a consistent Neo-Brutalist look and feel for both the trigger and the options panel.
- * @param {CustomDropdownProps} props The props for the component.
- * @returns {React.ReactElement} The rendered custom dropdown component.
- * @interactions
- * - **React Hooks:** Uses `useState` to manage the open/closed state, `useRef` to reference the component for outside click detection, and `useEffect` and `useCallback` for event handling logic.
- * - **State:** Manages an `isOpen` boolean state to toggle the visibility of the options panel.
- * - **Event Handling:**
- *   - Clicking the trigger toggles the dropdown's visibility.
- *   - Clicking an option selects it, calls the `onChange` callback, and closes the panel.
- *   - Clicking outside the component closes the panel.
- *   - Keyboard navigation (Arrow keys, Enter, Escape) is supported for accessibility.
- * - **CSS:** Relies on the `.custom-dropdown` BEM block in `index.css` for all styling.
- * - **Accessibility:** Implements ARIA attributes (`aria-haspopup`, `aria-expanded`, `role`, `aria-selected`) to ensure it's usable with screen readers and other assistive technologies.
- */
+const findOptionIndex = (options: DropdownOption[], value: string): number =>
+  options.findIndex((o) => o.value === value);
+
 export const CustomDropdown: React.FC<CustomDropdownProps> = ({
   options,
   value,
@@ -40,31 +35,25 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Create a map for O(1) lookups instead of O(n) find operations
-  const optionsMap = useMemo(() => {
-    const map = new Map<string, DropdownOption>();
-    options.forEach((option) => map.set(option.value, option));
-    return map;
-  }, [options]);
-
-  const selectedOption = useMemo(
-    () => optionsMap.get(value) || null,
-    [optionsMap, value],
+  const currentIndex = useMemo(
+    () => findOptionIndex(options, value),
+    [options, value],
   );
-
-  const handleToggle = () => {
-    if (!disabled) {
-      setIsOpen((prev) => !prev);
-    }
-  };
+  const selectedOption = useMemo(
+    () => options[currentIndex] || null,
+    [options, currentIndex],
+  );
 
   const handleOptionClick = (optionValue: string) => {
     onChange(optionValue);
     setIsOpen(false);
   };
 
+  const handleToggle = () => !disabled && setIsOpen((prev) => !prev);
+
   const handleKeyDown = (e: KeyboardEvent) => {
     if (disabled) return;
+
     switch (e.key) {
       case "Enter":
       case " ":
@@ -72,34 +61,28 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
         handleToggle();
         break;
       case "Escape":
-        if (isOpen) setIsOpen(false);
+        isOpen && setIsOpen(false);
         break;
       case "ArrowDown":
         e.preventDefault();
-        if (!isOpen) {
-          setIsOpen(true);
-        } else {
-          const currentIndex = options.findIndex((o) => o.value === value); // Still need this for navigation
-          const nextIndex = Math.min(options.length - 1, currentIndex + 1);
-          onChange(options[nextIndex].value);
-        }
+        if (!isOpen) setIsOpen(true);
+        else if (currentIndex < options.length - 1)
+          onChange(options[currentIndex + 1].value);
         break;
       case "ArrowUp":
         e.preventDefault();
-        if (isOpen) {
-          const currentIndex = options.findIndex((o) => o.value === value); // Still need this for navigation
-          const prevIndex = Math.max(0, currentIndex - 1);
-          onChange(options[prevIndex].value);
-        }
-        break;
-      default:
+        if (isOpen && currentIndex > 0)
+          onChange(options[currentIndex - 1].value);
         break;
     }
   };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -109,28 +92,14 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      const selectedEl = dropdownRef.current?.querySelector<HTMLElement>(
-        '[aria-selected="true"]',
-      );
-      selectedEl?.focus();
+      dropdownRef.current
+        ?.querySelector<HTMLElement>('[aria-selected="true"]')
+        ?.focus();
     }
   }, [isOpen]);
 
-  const containerClasses = ["custom-dropdown", className || ""]
-    .filter(Boolean)
-    .join(" ");
-  const optionsClasses = [
-    "custom-dropdown_options",
-    columns === 2 ? "custom-dropdown_options-columns-2" : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  // Memoize the options to prevent unnecessary re-renders
-  const memoizedOptions = useMemo(() => options, [options]);
-
   return (
-    <div ref={dropdownRef} className={containerClasses}>
+    <div ref={dropdownRef} className={cn("custom-dropdown", className)}>
       <button
         type="button"
         className="custom-dropdown_trigger"
@@ -146,11 +115,21 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
       </button>
 
       {isOpen && (
-        <ul className={optionsClasses} role="listbox" aria-label={ariaLabel}>
-          {memoizedOptions.map((option) => (
+        <ul
+          className={cn(
+            "custom-dropdown_options",
+            columns === 2 && "custom-dropdown_options-columns-2",
+          )}
+          role="listbox"
+          aria-label={ariaLabel}
+        >
+          {options.map((option) => (
             <li
               key={option.value}
-              className={`custom-dropdown_option ${option.value === value ? "custom-dropdown_option-selected" : ""}`}
+              className={cn(
+                "custom-dropdown_option",
+                option.value === value && "custom-dropdown_option-selected",
+              )}
               onClick={() => handleOptionClick(option.value)}
               role="option"
               aria-selected={option.value === value}
