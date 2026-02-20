@@ -7,6 +7,7 @@ interface TranslationIOProps {
   inputText: string;
   setInputText: (text: string) => void;
   translatedText: string;
+  alternativeTranslations: string[];
   isTranslating: boolean;
   inputLanguageLabel: string;
   outputLanguageLabel: string;
@@ -17,6 +18,7 @@ interface TranslationIOProps {
   maxCharacters: number;
   onCopySuccess: () => void;
   onCopyError: () => void;
+  onSelectAlternative: (text: string) => void;
 }
 
 interface PanelProps {
@@ -27,6 +29,7 @@ interface PanelProps {
   isOverLimit?: boolean;
   footer?: React.ReactNode;
   actions?: React.ReactNode;
+  overlay?: React.ReactNode;
 }
 
 const Panel: React.FC<PanelProps> = ({
@@ -37,6 +40,7 @@ const Panel: React.FC<PanelProps> = ({
   isOverLimit = false,
   footer,
   actions,
+  overlay,
 }) => (
   <div
     className={cn(
@@ -54,6 +58,7 @@ const Panel: React.FC<PanelProps> = ({
         readOnly={readOnly}
         aria-label={readOnly ? "Translated text" : "Input text for translation"}
       />
+      {overlay}
       {actions}
     </div>
     {footer}
@@ -64,6 +69,7 @@ export const TranslationIO: React.FC<TranslationIOProps> = ({
   inputText,
   setInputText,
   translatedText,
+  alternativeTranslations,
   isTranslating,
   inputLanguageLabel,
   outputLanguageLabel,
@@ -74,6 +80,7 @@ export const TranslationIO: React.FC<TranslationIOProps> = ({
   maxCharacters,
   onCopySuccess,
   onCopyError,
+  onSelectAlternative,
 }) => {
   const handleCopy = useCallback(async () => {
     if (!translatedText) return;
@@ -123,10 +130,34 @@ export const TranslationIO: React.FC<TranslationIOProps> = ({
         value={translatedText}
         onChange={() => {}}
         readOnly
-        footer={
+        overlay={
           isTranslating ? (
-            <div className="translation-io_thinking-wrapper">
+            <div className="translation-io_overlay" aria-live="polite">
               <ThinkingIndicator />
+            </div>
+          ) : null
+        }
+        footer={
+          !isTranslating && alternativeTranslations.length > 0 ? (
+            <div className="translation-io_footer translation-io_footer-output">
+              <div className="translation-io_alternatives">
+                <span className="translation-io_alternatives-label">
+                  Alternatives
+                </span>
+                <div className="translation-io_alternatives-list">
+                  {alternativeTranslations.map((alternative) => (
+                    <Button
+                      key={alternative}
+                      variant="subtle"
+                      className="translation-io_alt-button"
+                      onClick={() => onSelectAlternative(alternative)}
+                      title="Use this alternative translation"
+                    >
+                      {alternative}
+                    </Button>
+                  ))}
+                </div>
+              </div>
             </div>
           ) : null
         }

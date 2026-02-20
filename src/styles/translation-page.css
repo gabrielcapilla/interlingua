@@ -153,9 +153,58 @@
 
 .action-buttons {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: center;
     gap: var(--spacing-m);
+}
+
+.action-buttons_left,
+.action-buttons_right {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-m);
+}
+
+.mode-toggle {
+    display: flex;
+    align-items: center;
+    border: var(--stroke-width-thick) solid var(--color-stroke-1);
+    border-radius: var(--border-radius-medium);
+    box-shadow: 4px 4px 0 0 var(--color-shadow);
+    background-color: var(--color-bg-1);
+    overflow: hidden;
+    width: auto;
+}
+
+.mode-toggle_button {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    min-width: 110px;
+}
+
+.mode-toggle_button.button_transparent:hover:not(:disabled),
+.mode-toggle_button.button_transparent:active:not(:disabled) {
+    transform: none;
+    box-shadow: none;
+}
+
+.mode-toggle_button-active {
+    background-color: var(--color-brand-bg);
+    color: var(--color-text-inverted);
+}
+
+.mode-toggle_button-active.button_transparent:hover:not(:disabled),
+.mode-toggle_button-active.button_transparent:active:not(:disabled),
+.mode-toggle_button-active.button_transparent:focus-visible:not(:disabled) {
+    background-color: var(--color-brand-bg);
+    color: var(--color-text-inverted);
+    transform: none;
+    box-shadow: none;
+}
+
+.mode-toggle_button + .mode-toggle_button {
+    border-left: var(--stroke-width-thick) solid var(--color-stroke-1);
 }
 
 .error-message {
@@ -208,9 +257,30 @@
         flex-direction: column-reverse;
         width: 100%;
         gap: var(--spacing-s);
+        align-items: stretch;
     }
 
-    .action-buttons .button {
+    .action-buttons_left,
+    .action-buttons_right {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .action-buttons_left .button {
+        flex: 1;
+    }
+
+    .action-buttons_left .mode-toggle {
+        width: 100%;
+    }
+
+    .action-buttons_left .mode-toggle .mode-toggle_button {
+        flex: 1;
+        width: auto;
+        min-width: 0;
+    }
+
+    .action-buttons_right .button {
         width: 100%;
     }
 }

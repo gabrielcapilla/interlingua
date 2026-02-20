@@ -38,11 +38,49 @@
     background-color: var(--color-bg-2);
 }
 
-.translation-io_thinking-wrapper {
+.translation-io_overlay {
+    position: absolute;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 100%;
+    pointer-events: none;
+    background: color-mix(in srgb, var(--color-bg-2) 55%, transparent);
+}
+
+.translation-io_footer-output {
+    align-items: flex-start;
+}
+
+.translation-io_alternatives {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    width: 100%;
+}
+
+.translation-io_alternatives-label {
+    font-size: var(--font-size-200);
+    color: var(--color-text-3);
+    font-weight: var(--font-weight-semibold);
+}
+
+.translation-io_alternatives-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+    width: 100%;
+}
+
+.translation-io_alt-button {
+    min-width: unset;
+    font-size: var(--font-size-200);
+    line-height: var(--line-height-200);
+    padding: var(--spacing-xs) var(--spacing-s);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .translation-io_text-area {

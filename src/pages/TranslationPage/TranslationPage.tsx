@@ -23,12 +23,13 @@ import {
   filterAutoLanguage,
   findOptionByValue,
 } from "../../utils/transforms";
-import { LanguageCode } from "../../types";
+import { LanguageCode, ProcessingMode } from "../../types";
 
 const FILE_INPUT_ACCEPT = ".txt,.md,.json,.html,.csv,.xml,.rtf";
 
 export const TranslationPage: React.FC = () => {
   const [inputText, setInputText] = useState("");
+  const [mode, setMode] = useState<ProcessingMode>("translate");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { addToast } = useToast();
 
@@ -53,15 +54,17 @@ export const TranslationPage: React.FC = () => {
 
   const {
     translatedText,
+    alternativeTranslations,
+    detectedSourceLanguage,
     isTranslating,
     translationError,
     setTranslationError,
     translateText,
     setTranslatedText,
-  } = useTranslation({ selectedModel, inputLanguage, outputLanguage });
+  } = useTranslation({ selectedModel, inputLanguage, outputLanguage, mode });
 
   const isOverLimit = inputText.length > MAX_INPUT_CHARACTERS;
-  const lastTranslatedText = useRef("");
+  const lastAutoRequestText = useRef("");
 
   const handleTranslateClick = useCallback(() => {
     if (!inputText.trim() || !selectedModel || isTranslating || isOverLimit)
@@ -73,19 +76,14 @@ export const TranslationPage: React.FC = () => {
     if (!inputText.trim()) {
       setTranslatedText("");
       setTranslationError(null);
-      lastTranslatedText.current = "";
+      lastAutoRequestText.current = "";
       return;
     }
 
-    if (
-      inputLanguage === "auto" &&
-      inputText !== lastTranslatedText.current &&
-      (!translatedText || translationError) &&
-      selectedModel &&
-      !isOverLimit
-    ) {
+    if (inputLanguage === "auto" && selectedModel && !isOverLimit) {
+      if (inputText === lastAutoRequestText.current) return;
       const timer = setTimeout(() => {
-        lastTranslatedText.current = inputText;
+        lastAutoRequestText.current = inputText;
         translateText(inputText);
       }, 750);
       return () => clearTimeout(timer);
@@ -98,15 +96,20 @@ export const TranslationPage: React.FC = () => {
     setTranslatedText,
     setTranslationError,
     isOverLimit,
-    translatedText,
-    translationError,
   ]);
 
   useEffect(() => {
     setTranslatedText("");
     setTranslationError(null);
-    lastTranslatedText.current = "";
-  }, [inputLanguage, outputLanguage, setTranslatedText, setTranslationError]);
+    lastAutoRequestText.current = "";
+  }, [
+    mode,
+    inputLanguage,
+    outputLanguage,
+    selectedModel,
+    setTranslatedText,
+    setTranslationError,
+  ]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -192,15 +195,31 @@ export const TranslationPage: React.FC = () => {
     () => filterAutoLanguage(languageOptions),
     [],
   );
-  const inputLanguageLabel = useMemo(
-    () => findOptionByValue(languageOptions, inputLanguage)?.label ?? "Source",
-    [inputLanguage],
+  const detectedLanguageLabel = useMemo(
+    () =>
+      detectedSourceLanguage
+        ? (findOptionByValue(languageOptions, detectedSourceLanguage)?.label ??
+          detectedSourceLanguage.toUpperCase())
+        : null,
+    [detectedSourceLanguage],
   );
+  const inputLanguageLabel = useMemo(() => {
+    const baseLabel =
+      findOptionByValue(languageOptions, inputLanguage)?.label ?? "Source";
+
+    if (inputLanguage === "auto" && detectedLanguageLabel) {
+      return `${baseLabel} (Detected: ${detectedLanguageLabel})`;
+    }
+
+    return baseLabel;
+  }, [inputLanguage, detectedLanguageLabel]);
   const outputLanguageLabel = useMemo(
     () =>
-      findOptionByValue(languageOptions, outputLanguage)?.label ??
-      "Translation",
-    [outputLanguage],
+      mode === "correct"
+        ? "Corrected Text"
+        : (findOptionByValue(languageOptions, outputLanguage)?.label ??
+          "Translation"),
+    [outputLanguage, mode],
   );
   const isModelSelectorDisabled =
     isLoadingModels || !!modelError || ollamaModels.length === 0;
@@ -234,11 +253,13 @@ export const TranslationPage: React.FC = () => {
                 onClick={handleLanguageSwap}
                 aria-label="Swap languages"
                 title={
-                  inputLanguage === "auto"
+                  mode === "correct"
+                    ? "Swap is disabled in Correct mode"
+                    : inputLanguage === "auto"
                     ? "Cannot swap with Auto-Detect"
                     : "Swap languages"
                 }
-                disabled={inputLanguage === "auto"}
+                disabled={inputLanguage === "auto" || mode === "correct"}
               >
                 ⇆
               </Button>
@@ -249,6 +270,7 @@ export const TranslationPage: React.FC = () => {
                 onChange={(value) => setOutputLanguage(value as LanguageCode)}
                 aria-label="Select output language"
                 columns={2}
+                disabled={mode === "correct"}
               />
             </div>
             <div
@@ -312,7 +334,10 @@ export const TranslationPage: React.FC = () => {
             addToast({
               variant: "success",
               title: "Success",
-              message: "Translated text copied to clipboard.",
+              message:
+                mode === "correct"
+                  ? "Corrected text copied to clipboard."
+                  : "Translated text copied to clipboard.",
             })
           }
           onCopyError={() =>
@@ -322,38 +347,68 @@ export const TranslationPage: React.FC = () => {
               message: "Could not copy text to clipboard.",
             })
           }
+          alternativeTranslations={alternativeTranslations}
+          onSelectAlternative={(text) => setTranslatedText(text)}
         />
 
         <div className="action-buttons">
-          <Button
-            variant={inputLanguage !== "auto" ? "secondary" : "primary"}
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isTranslating}
-          >
-            Translate Document
-          </Button>
-          {inputLanguage !== "auto" && (
-            <Button
-              variant="primary"
-              onClick={handleTranslateClick}
-              disabled={
-                !inputText.trim() ||
-                isTranslating ||
-                !selectedModel ||
-                !!modelError ||
-                isOverLimit
-              }
-              title={
-                isOverLimit
-                  ? `Input exceeds character limit of ${MAX_INPUT_CHARACTERS.toLocaleString()}`
-                  : !selectedModel || modelError
-                    ? "A model must be selected to translate"
-                    : "Translate the input text (Ctrl+Enter)"
-              }
+          <div className="action-buttons_left">
+            <div
+              className="mode-toggle"
+              role="tablist"
+              aria-label="Processing mode"
             >
-              Translate
+              <Button
+                variant="transparent"
+                onClick={() => setMode("translate")}
+                className={`mode-toggle_button ${mode === "translate" ? "mode-toggle_button-active" : ""}`}
+                aria-label="Translate mode"
+                aria-pressed={mode === "translate"}
+              >
+                Translate
+              </Button>
+              <Button
+                variant="transparent"
+                onClick={() => setMode("correct")}
+                className={`mode-toggle_button ${mode === "correct" ? "mode-toggle_button-active" : ""}`}
+                aria-label="Correct mode"
+                aria-pressed={mode === "correct"}
+              >
+                Correct
+              </Button>
+            </div>
+          </div>
+          <div className="action-buttons_right">
+            <Button
+              variant={inputLanguage !== "auto" ? "secondary" : "primary"}
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isTranslating}
+            >
+              {mode === "correct" ? "Correct Document" : "Translate Document"}
             </Button>
-          )}
+            {inputLanguage !== "auto" && (
+              <Button
+                variant="primary"
+                onClick={handleTranslateClick}
+                disabled={
+                  !inputText.trim() ||
+                  isTranslating ||
+                  !selectedModel ||
+                  !!modelError ||
+                  isOverLimit
+                }
+                title={
+                  isOverLimit
+                    ? `Input exceeds character limit of ${MAX_INPUT_CHARACTERS.toLocaleString()}`
+                    : !selectedModel || modelError
+                      ? `A model must be selected to ${mode === "correct" ? "correct" : "translate"}`
+                      : `${mode === "correct" ? "Correct" : "Translate"} the input text (Ctrl+Enter)`
+                }
+              >
+                {mode === "correct" ? "Correct" : "Translate"}
+              </Button>
+            )}
+          </div>
         </div>
       </main>
       <AppFooter />
