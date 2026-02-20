@@ -15,6 +15,8 @@ export type LanguageCode =
   | "ar"
   | "hi";
 
+export type ProcessingMode = "translate" | "correct";
+
 export interface DropdownOption {
   value: string;
   label: string;
