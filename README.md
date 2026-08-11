@@ -2,7 +2,7 @@
 
 ![image](preview.webp)
 
-A locally-run translation application powered by [Ollama](https://ollama.com/) or [llama.cpp](https://github.com/ggml-org/llama.cpp). Private, fast, and accurate translations directly on your machine.
+A locally-run translation application powered by [Ollama](https://ollama.com/) or [llama.cpp](https://github.com/ggml-org/llama.cpp). Private, fast, and accurate translations directly on your machine. We primarily recommend Ollama because it is easy to install and use; if you prefer better performance, we recommend llama.cpp.
 
 ## Prerequisites
 
