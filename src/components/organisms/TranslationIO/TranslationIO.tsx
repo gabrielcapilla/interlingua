@@ -1,7 +1,8 @@
-import React, { useCallback } from "react";
-import { ThinkingIndicator } from "../../atoms/ThinkingIndicator";
-import { Button } from "../../atoms/Button";
+import type { FC, ReactNode } from "react";
+import { useCallback } from "react";
 import { cn } from "../../../utils/cn";
+import { Button } from "../../atoms/Button";
+import { ThinkingIndicator } from "../../atoms/ThinkingIndicator";
 
 interface TranslationIOProps {
   inputText: string;
@@ -27,12 +28,14 @@ interface PanelProps {
   onChange: (value: string) => void;
   readOnly?: boolean;
   isOverLimit?: boolean;
-  footer?: React.ReactNode;
-  actions?: React.ReactNode;
-  overlay?: React.ReactNode;
+  footer?: ReactNode;
+  actions?: ReactNode;
+  overlay?: ReactNode;
 }
 
-const Panel: React.FC<PanelProps> = ({
+const ignoreChange = (): void => undefined;
+
+const Panel: FC<PanelProps> = ({
   label,
   value,
   onChange,
@@ -43,10 +46,7 @@ const Panel: React.FC<PanelProps> = ({
   overlay,
 }) => (
   <div
-    className={cn(
-      "translation-io_panel",
-      isOverLimit && "translation-io_panel-error",
-    )}
+    className={cn("translation-io_panel", isOverLimit && "translation-io_panel-error")}
   >
     <div className="translation-io_header">{label}</div>
     <div className="translation-io_text-area-wrapper">
@@ -65,7 +65,7 @@ const Panel: React.FC<PanelProps> = ({
   </div>
 );
 
-export const TranslationIO: React.FC<TranslationIOProps> = ({
+export const TranslationIO: FC<TranslationIOProps> = ({
   inputText,
   setInputText,
   translatedText,
@@ -92,6 +92,9 @@ export const TranslationIO: React.FC<TranslationIOProps> = ({
     }
   }, [translatedText, onCopySuccess, onCopyError]);
 
+  const hasAlternatives = !isTranslating && alternativeTranslations.length > 0;
+  const canCopy = !isTranslating && Boolean(translatedText);
+
   return (
     <div className="translation-io">
       <Panel
@@ -101,11 +104,8 @@ export const TranslationIO: React.FC<TranslationIOProps> = ({
         isOverLimit={isOverLimit}
         footer={
           <div className="translation-io_footer">
-            <span
-              className={isOverLimit ? "translation-io_char-count-error" : ""}
-            >
-              {characterCount.toLocaleString()} /{" "}
-              {maxCharacters.toLocaleString()}
+            <span className={isOverLimit ? "translation-io_char-count-error" : ""}>
+              {characterCount.toLocaleString()} / {maxCharacters.toLocaleString()}
             </span>
             <span>{wordCount} words</span>
           </div>
@@ -128,7 +128,7 @@ export const TranslationIO: React.FC<TranslationIOProps> = ({
       <Panel
         label={outputLanguageLabel}
         value={translatedText}
-        onChange={() => {}}
+        onChange={ignoreChange}
         readOnly
         overlay={
           isTranslating ? (
@@ -138,12 +138,10 @@ export const TranslationIO: React.FC<TranslationIOProps> = ({
           ) : null
         }
         footer={
-          !isTranslating && alternativeTranslations.length > 0 ? (
+          hasAlternatives ? (
             <div className="translation-io_footer translation-io_footer-output">
               <div className="translation-io_alternatives">
-                <span className="translation-io_alternatives-label">
-                  Alternatives
-                </span>
+                <span className="translation-io_alternatives-label">Alternatives</span>
                 <div className="translation-io_alternatives-list">
                   {alternativeTranslations.map((alternative) => (
                     <Button
@@ -162,8 +160,7 @@ export const TranslationIO: React.FC<TranslationIOProps> = ({
           ) : null
         }
         actions={
-          !isTranslating &&
-          translatedText && (
+          canCopy && (
             <div className="translation-io_copy-button-wrapper">
               <Button
                 variant="secondary"

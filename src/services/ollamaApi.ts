@@ -1,19 +1,35 @@
 import {
-  OLLAMA_API_BASE_URL,
-  OLLAMA_CONNECTION_ERROR_PREFIX,
   LIMITS,
+  LLAMA_CPP_API_BASE_URL,
+  OLLAMA_API_BASE_URL,
 } from "../config/constants";
-import {
-  OllamaTagsResponse,
+import type {
   DropdownOption,
+  InferenceProvider,
+  LlamaCppChatResponse,
+  LlamaCppModelsResponse,
   OllamaChatResponse,
   OllamaMessage,
+  OllamaTagsResponse,
 } from "../types";
-import { mapOllamaModelsToOptions, withTimeout } from "../utils/transforms";
+import {
+  mapLlamaCppModelsToOptions,
+  mapOllamaModelsToOptions,
+  parseModelReference,
+  withTimeout,
+} from "../utils/transforms";
 
 const { MODEL_FETCH_TIMEOUT, TRANSLATION_TIMEOUT } = LIMITS;
 
-const handleNetworkError = (error: unknown): string => {
+interface ProviderModelsRequest<T> {
+  provider: InferenceProvider;
+  endpoint: string;
+  mapResponse: (response: T) => DropdownOption[];
+  httpErrorMessage: (response: Response) => string;
+  timeoutMessage: string;
+}
+
+const handleNetworkError = (error: unknown, provider?: InferenceProvider): string => {
   if (error instanceof TypeError) {
     const msg = error.message.toLowerCase();
     if (
@@ -21,32 +37,82 @@ const handleNetworkError = (error: unknown): string => {
       msg.includes("networkerror") ||
       msg.includes("load failed")
     ) {
-      return `${OLLAMA_CONNECTION_ERROR_PREFIX} Ensure it is running (e.g., \`ollama serve\`) and accessible.`;
+      if (provider === "ollama")
+        return "Could not connect to Ollama. Ensure `ollama serve` is running.";
+      if (provider === "llamacpp")
+        return "Could not connect to llama.cpp. Ensure `llama-server` is running on port 4256.";
+      return "Could not connect to Ollama or llama.cpp.";
     }
   }
-  return error instanceof Error
-    ? error.message
-    : "An unknown network error occurred.";
+  return error instanceof Error ? error.message : "An unknown network error occurred.";
 };
 
-export const fetchOllamaModels = async (): Promise<DropdownOption[]> =>
-  withTimeout(async () => {
-    const response = await fetch(`${OLLAMA_API_BASE_URL}/tags`);
-    if (!response.ok)
-      throw new Error(
-        `Failed to fetch models: ${response.status} ${response.statusText}`,
-      );
+const fetchProviderModels = async <T>({
+  provider,
+  endpoint,
+  mapResponse,
+  httpErrorMessage,
+  timeoutMessage,
+}: ProviderModelsRequest<T>): Promise<DropdownOption[]> =>
+  withTimeout(async (signal) => {
+    const response = await fetch(endpoint, { signal });
+    if (!response.ok) throw new Error(httpErrorMessage(response));
 
-    const data: OllamaTagsResponse = await response.json();
-    return mapOllamaModelsToOptions(data);
+    const data = (await response.json()) as T;
+    return mapResponse(data);
   }, MODEL_FETCH_TIMEOUT).catch((error) => {
     if (error instanceof Error && error.message.includes("timed out")) {
-      throw new Error(
-        "Ollama server not responding. Ensure it is running and accessible.",
-      );
+      throw new Error(timeoutMessage);
     }
-    throw new Error(handleNetworkError(error));
+    throw new Error(handleNetworkError(error, provider));
   });
+
+const fetchOllamaModels = (): Promise<DropdownOption[]> =>
+  fetchProviderModels<OllamaTagsResponse>({
+    provider: "ollama",
+    endpoint: `${OLLAMA_API_BASE_URL}/tags`,
+    mapResponse: mapOllamaModelsToOptions,
+    httpErrorMessage: (response) =>
+      `Failed to fetch models: ${response.status} ${response.statusText}`,
+    timeoutMessage:
+      "Ollama server not responding. Ensure it is running and accessible.",
+  });
+
+const fetchLlamaCppModels = (): Promise<DropdownOption[]> =>
+  fetchProviderModels<LlamaCppModelsResponse>({
+    provider: "llamacpp",
+    endpoint: `${LLAMA_CPP_API_BASE_URL}/models`,
+    mapResponse: mapLlamaCppModelsToOptions,
+    httpErrorMessage: (response) =>
+      `Failed to fetch llama.cpp models: ${response.status} ${response.statusText}`,
+    timeoutMessage:
+      "llama.cpp server not responding. Ensure llama-server is running on port 4256.",
+  });
+
+export const fetchAvailableModels = async (): Promise<DropdownOption[]> => {
+  const results = await Promise.allSettled([
+    fetchOllamaModels(),
+    fetchLlamaCppModels(),
+  ]);
+  const models = results.flatMap((result) =>
+    result.status === "fulfilled" ? result.value : [],
+  );
+  if (models.length > 0) return models;
+
+  const errors = results
+    .filter((result): result is PromiseRejectedResult => result.status === "rejected")
+    .map((result) =>
+      result.reason instanceof Error ? result.reason.message : String(result.reason),
+    );
+  throw new Error(errors.join(" ") || "No local inference models found.");
+};
+
+const readApiError = async (response: Response): Promise<string> => {
+  const data = await response.json().catch(() => null);
+  if (typeof data?.error === "string") return data.error;
+  if (typeof data?.error?.message === "string") return data.error.message;
+  return `HTTP error: ${response.status}`;
+};
 
 export const fetchTranslation = async ({
   model,
@@ -57,24 +123,34 @@ export const fetchTranslation = async ({
   messages: OllamaMessage[];
   options?: Record<string, unknown>;
 }): Promise<string> =>
-  withTimeout(async () => {
-    const response = await fetch(`${OLLAMA_API_BASE_URL}/chat`, {
+  withTimeout(async (signal) => {
+    const reference = parseModelReference(model);
+    const isOllama = reference.provider === "ollama";
+    const endpoint = isOllama
+      ? `${OLLAMA_API_BASE_URL}/chat`
+      : `${LLAMA_CPP_API_BASE_URL}/chat/completions`;
+    const body = isOllama
+      ? { model: reference.model, messages, stream: false, options }
+      : { model: reference.model, messages, stream: false, ...options };
+    const response = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model, messages, stream: false, options }),
+      body: JSON.stringify(body),
+      signal,
     });
 
     if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ error: `HTTP error: ${response.status}` }));
-      throw new Error(
-        errorData.error || `Failed to get response from AI: ${response.status}`,
-      );
+      throw new Error(await readApiError(response));
     }
 
-    const data: OllamaChatResponse = await response.json();
-    return data.message.content;
+    if (isOllama) {
+      const data: OllamaChatResponse = await response.json();
+      return data.message.content;
+    }
+    const data: LlamaCppChatResponse = await response.json();
+    const content = data.choices[0]?.message.content;
+    if (!content) throw new Error("llama.cpp returned an empty response.");
+    return content;
   }, TRANSLATION_TIMEOUT).catch((error) => {
     if (
       error instanceof Error &&
@@ -85,5 +161,5 @@ export const fetchTranslation = async ({
         "Translation request timeout. The model may be taking too long to respond.",
       );
     }
-    throw new Error(handleNetworkError(error));
+    throw new Error(handleNetworkError(error, parseModelReference(model).provider));
   });

@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { Button } from "../Button";
+import type { FC } from "react";
+import { useEffect, useState } from "react";
+import { cn } from "../../../utils/cn";
 import { icons } from "../../../utils/icons";
+import { Button } from "../Button";
 
 type ToastVariant = keyof typeof icons;
 
@@ -13,7 +15,7 @@ interface ToastProps {
   duration?: number;
 }
 
-export const Toast: React.FC<ToastProps> = ({
+export const Toast: FC<ToastProps> = ({
   id,
   variant,
   title,
@@ -26,7 +28,7 @@ export const Toast: React.FC<ToastProps> = ({
   useEffect(() => {
     const timer = setTimeout(() => setIsExiting(true), duration);
     return () => clearTimeout(timer);
-  }, [id, duration]);
+  }, [duration]);
 
   useEffect(() => {
     if (!isExiting) return;
@@ -38,9 +40,7 @@ export const Toast: React.FC<ToastProps> = ({
 
   return (
     <div
-      className={["toast", `toast_${variant}`, isExiting && "toast_exiting"]
-        .filter(Boolean)
-        .join(" ")}
+      className={cn("toast", `toast_${variant}`, isExiting && "toast_exiting")}
       role="alert"
       aria-live="assertive"
       aria-atomic="true"

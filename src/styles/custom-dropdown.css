@@ -99,6 +99,10 @@
     color: var(--color-text-1);
     padding: var(--spacing-s) var(--spacing-m);
     cursor: pointer;
+    border: 0;
+    width: 100%;
+    text-align: left;
+    background: transparent;
     border-radius: var(--border-radius-small);
     transition:
         background-color var(--duration-fast) var(--curve-easy-ease),

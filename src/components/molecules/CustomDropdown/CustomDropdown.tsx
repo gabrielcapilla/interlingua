@@ -1,11 +1,12 @@
-import React, {
-  useState,
-  useRef,
+import {
+  type FC,
+  type KeyboardEvent,
   useEffect,
   useMemo,
-  KeyboardEvent,
+  useRef,
+  useState,
 } from "react";
-import { DropdownOption } from "../../../types";
+import type { DropdownOption } from "../../../types";
 import { cn } from "../../../utils/cn";
 
 interface CustomDropdownProps {
@@ -22,7 +23,7 @@ interface CustomDropdownProps {
 const findOptionIndex = (options: DropdownOption[], value: string): number =>
   options.findIndex((o) => o.value === value);
 
-export const CustomDropdown: React.FC<CustomDropdownProps> = ({
+export const CustomDropdown: FC<CustomDropdownProps> = ({
   options,
   value,
   onChange,
@@ -35,10 +36,7 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const currentIndex = useMemo(
-    () => findOptionIndex(options, value),
-    [options, value],
-  );
+  const currentIndex = useMemo(() => findOptionIndex(options, value), [options, value]);
   const selectedOption = useMemo(
     () => options[currentIndex] || null,
     [options, currentIndex],
@@ -66,23 +64,24 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
       case "ArrowDown":
         e.preventDefault();
         if (!isOpen) setIsOpen(true);
-        else if (currentIndex < options.length - 1)
-          onChange(options[currentIndex + 1].value);
+        else if (currentIndex < options.length - 1) {
+          const nextOption = options[currentIndex + 1];
+          if (nextOption) onChange(nextOption.value);
+        }
         break;
       case "ArrowUp":
         e.preventDefault();
-        if (isOpen && currentIndex > 0)
-          onChange(options[currentIndex - 1].value);
+        if (isOpen && currentIndex > 0) {
+          const previousOption = options[currentIndex - 1];
+          if (previousOption) onChange(previousOption.value);
+        }
         break;
     }
   };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
@@ -115,7 +114,7 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
       </button>
 
       {isOpen && (
-        <ul
+        <div
           className={cn(
             "custom-dropdown_options",
             columns === 2 && "custom-dropdown_options-columns-2",
@@ -124,8 +123,9 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
           aria-label={ariaLabel}
         >
           {options.map((option) => (
-            <li
+            <button
               key={option.value}
+              type="button"
               className={cn(
                 "custom-dropdown_option",
                 option.value === value && "custom-dropdown_option-selected",
@@ -134,17 +134,11 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
               role="option"
               aria-selected={option.value === value}
               tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  handleOptionClick(option.value);
-                }
-              }}
             >
               {option.label}
-            </li>
+            </button>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );

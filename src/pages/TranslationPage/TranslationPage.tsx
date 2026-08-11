@@ -1,33 +1,31 @@
-import React, {
-  useState,
-  useRef,
-  useMemo,
-  useCallback,
-  useEffect,
-} from "react";
-import {
-  useOllamaModels,
-  useLanguageSelection,
-  useTranslation,
-  useToast,
-} from "../../hooks";
+import type { ChangeEvent, FC } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Button } from "../../components/atoms/Button";
+import { AppHeader } from "../../components/molecules/AppHeader";
+import { CustomDropdown } from "../../components/molecules/CustomDropdown";
+import { AppFooter } from "../../components/molecules/Footer";
+import { TranslationIO } from "../../components/organisms/TranslationIO";
 import { MAX_INPUT_CHARACTERS } from "../../config/constants";
 import { languageOptions } from "../../data";
-import { TranslationIO } from "../../components/organisms/TranslationIO";
-import { AppHeader } from "../../components/molecules/AppHeader";
-import { AppFooter } from "../../components/molecules/Footer";
-import { Button } from "../../components/atoms/Button";
-import { CustomDropdown } from "../../components/molecules/CustomDropdown";
+import {
+  useLanguageSelection,
+  useOllamaModels,
+  useToast,
+  useTranslation,
+} from "../../hooks";
+import type { LanguageCode, ProcessingMode } from "../../types";
+import { createLatestRequestScheduler } from "../../utils/latestRequest";
 import {
   countWords,
-  filterAutoLanguage,
+  filterOutputLanguages,
   findOptionByValue,
+  shouldScheduleAutoTranslation,
 } from "../../utils/transforms";
-import { LanguageCode, ProcessingMode } from "../../types";
 
 const FILE_INPUT_ACCEPT = ".txt,.md,.json,.html,.csv,.xml,.rtf";
+const AUTO_TRANSLATE_DELAY_MS = 750;
 
-export const TranslationPage: React.FC = () => {
+export const TranslationPage: FC = () => {
   const [inputText, setInputText] = useState("");
   const [mode, setMode] = useState<ProcessingMode>("translate");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -52,6 +50,18 @@ export const TranslationPage: React.FC = () => {
     handleLanguageSwap,
   } = useLanguageSelection();
 
+  const outputLanguageOptions = useMemo(
+    () => filterOutputLanguages(languageOptions, inputLanguage),
+    [inputLanguage],
+  );
+  const effectiveOutputLanguage = useMemo(() => {
+    if (outputLanguageOptions.some(({ value }) => value === outputLanguage)) {
+      return outputLanguage;
+    }
+
+    return outputLanguageOptions[0]?.value ?? outputLanguage;
+  }, [outputLanguage, outputLanguageOptions]);
+
   const {
     translatedText,
     alternativeTranslations,
@@ -61,63 +71,85 @@ export const TranslationPage: React.FC = () => {
     setTranslationError,
     translateText,
     setTranslatedText,
-  } = useTranslation({ selectedModel, inputLanguage, outputLanguage, mode });
+  } = useTranslation({
+    selectedModel,
+    inputLanguage,
+    outputLanguage: effectiveOutputLanguage,
+    mode,
+  });
 
   const isOverLimit = inputText.length > MAX_INPUT_CHARACTERS;
   const lastAutoRequestText = useRef("");
+  const translationResetKey = [mode, inputLanguage, outputLanguage, selectedModel].join(
+    "\u0000",
+  );
+  const translateTextRef = useRef(translateText);
+  translateTextRef.current = translateText;
+  const autoRequestSchedulerRef = useRef<ReturnType<
+    typeof createLatestRequestScheduler
+  > | null>(null);
+  if (!autoRequestSchedulerRef.current) {
+    autoRequestSchedulerRef.current = createLatestRequestScheduler((text) =>
+      translateTextRef.current(text),
+    );
+  }
+  const isCorrectMode = mode === "correct";
+  const hasManualSourceLanguage = inputLanguage !== "auto";
+  const isFavoriteModel = selectedModel === favoriteModel;
+  const actionLabel = isCorrectMode ? "Correct" : "Translate";
+  const actionLabelLower = actionLabel.toLowerCase();
 
   const handleTranslateClick = useCallback(() => {
-    if (!inputText.trim() || !selectedModel || isTranslating || isOverLimit)
-      return;
+    if (!inputText.trim() || !selectedModel || isTranslating || isOverLimit) return;
     translateText(inputText);
   }, [inputText, selectedModel, isTranslating, translateText, isOverLimit]);
 
+  const clearTranslation = useCallback(() => {
+    setTranslatedText("");
+    setTranslationError(null);
+  }, [setTranslatedText, setTranslationError]);
+
+  const handleClearInput = useCallback(() => {
+    setInputText("");
+    clearTranslation();
+  }, [clearTranslation]);
+
   useEffect(() => {
     if (!inputText.trim()) {
-      setTranslatedText("");
-      setTranslationError(null);
+      clearTranslation();
       lastAutoRequestText.current = "";
+      autoRequestSchedulerRef.current?.clearPending();
       return;
     }
 
-    if (inputLanguage === "auto" && selectedModel && !isOverLimit) {
-      if (inputText === lastAutoRequestText.current) return;
+    if (
+      inputLanguage === "auto" &&
+      selectedModel &&
+      !isOverLimit &&
+      shouldScheduleAutoTranslation(inputText, lastAutoRequestText.current)
+    ) {
       const timer = setTimeout(() => {
+        if (!shouldScheduleAutoTranslation(inputText, lastAutoRequestText.current))
+          return;
         lastAutoRequestText.current = inputText;
-        translateText(inputText);
-      }, 750);
+        autoRequestSchedulerRef.current?.enqueue(inputText);
+      }, AUTO_TRANSLATE_DELAY_MS);
       return () => clearTimeout(timer);
     }
-  }, [
-    inputText,
-    selectedModel,
-    inputLanguage,
-    translateText,
-    setTranslatedText,
-    setTranslationError,
-    isOverLimit,
-  ]);
+  }, [inputText, selectedModel, inputLanguage, clearTranslation, isOverLimit]);
 
   useEffect(() => {
-    setTranslatedText("");
-    setTranslationError(null);
+    void translationResetKey;
+    clearTranslation();
     lastAutoRequestText.current = "";
-  }, [
-    mode,
-    inputLanguage,
-    outputLanguage,
-    selectedModel,
-    setTranslatedText,
-    setTranslationError,
-  ]);
+    autoRequestSchedulerRef.current?.clearPending();
+  }, [translationResetKey, clearTranslation]);
+
+  useEffect(() => () => autoRequestSchedulerRef.current?.dispose(), []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        (e.ctrlKey || e.metaKey) &&
-        e.key === "Enter" &&
-        inputLanguage !== "auto"
-      ) {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && inputLanguage !== "auto") {
         e.preventDefault();
         handleTranslateClick();
       }
@@ -129,9 +161,7 @@ export const TranslationPage: React.FC = () => {
   useEffect(() => {
     if (modelError) {
       addToast({
-        variant: modelError.startsWith("No Ollama models found")
-          ? "warning"
-          : "error",
+        variant: modelError.startsWith("No models found") ? "warning" : "error",
         title: "Model Error",
         message: modelError,
       });
@@ -147,7 +177,7 @@ export const TranslationPage: React.FC = () => {
   }, [modelError, translationError, addToast, setTranslationError]);
 
   const handleFileChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
+    (event: ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
       if (!file) return;
 
@@ -185,16 +215,44 @@ export const TranslationPage: React.FC = () => {
       reader.readAsText(file);
       if (event.target) event.target.value = "";
     },
-    [addToast, setInputText, setTranslatedText],
+    [addToast, setTranslatedText, setTranslationError],
+  );
+
+  const handleFavoriteToggle = useCallback(() => {
+    if (!selectedModel) return;
+    setFavoriteModel(isFavoriteModel ? "" : selectedModel);
+  }, [isFavoriteModel, selectedModel, setFavoriteModel]);
+
+  const handleCopySuccess = useCallback(
+    () =>
+      addToast({
+        variant: "success",
+        title: "Success",
+        message: isCorrectMode
+          ? "Corrected text copied to clipboard."
+          : "Translated text copied to clipboard.",
+      }),
+    [addToast, isCorrectMode],
+  );
+
+  const handleCopyError = useCallback(
+    () =>
+      addToast({
+        variant: "error",
+        title: "Copy Failed",
+        message: "Could not copy text to clipboard.",
+      }),
+    [addToast],
+  );
+
+  const handleSelectAlternative = useCallback(
+    (text: string) => setTranslatedText(text),
+    [setTranslatedText],
   );
 
   const characterCount = inputText.length;
   const wordCount = useMemo(() => countWords(inputText), [inputText]);
 
-  const outputLanguageOptions = useMemo(
-    () => filterAutoLanguage(languageOptions),
-    [],
-  );
   const detectedLanguageLabel = useMemo(
     () =>
       detectedSourceLanguage
@@ -215,11 +273,11 @@ export const TranslationPage: React.FC = () => {
   }, [inputLanguage, detectedLanguageLabel]);
   const outputLanguageLabel = useMemo(
     () =>
-      mode === "correct"
+      isCorrectMode
         ? "Corrected Text"
-        : (findOptionByValue(languageOptions, outputLanguage)?.label ??
+        : (findOptionByValue(languageOptions, effectiveOutputLanguage)?.label ??
           "Translation"),
-    [outputLanguage, mode],
+    [effectiveOutputLanguage, isCorrectMode],
   );
   const isModelSelectorDisabled =
     isLoadingModels || !!modelError || ollamaModels.length === 0;
@@ -253,24 +311,24 @@ export const TranslationPage: React.FC = () => {
                 onClick={handleLanguageSwap}
                 aria-label="Swap languages"
                 title={
-                  mode === "correct"
+                  isCorrectMode
                     ? "Swap is disabled in Correct mode"
                     : inputLanguage === "auto"
-                    ? "Cannot swap with Auto-Detect"
-                    : "Swap languages"
+                      ? "Cannot swap with Auto-Detect"
+                      : "Swap languages"
                 }
-                disabled={inputLanguage === "auto" || mode === "correct"}
+                disabled={!hasManualSourceLanguage || isCorrectMode}
               >
                 ⇆
               </Button>
               <CustomDropdown
                 className="language-selectors_dropdown"
                 options={outputLanguageOptions}
-                value={outputLanguage}
+                value={effectiveOutputLanguage}
                 onChange={(value) => setOutputLanguage(value as LanguageCode)}
                 aria-label="Select output language"
                 columns={2}
-                disabled={mode === "correct"}
+                disabled={isCorrectMode}
               />
             </div>
             <div
@@ -289,26 +347,17 @@ export const TranslationPage: React.FC = () => {
                 variant="transparent"
                 iconOnly
                 buttonShape="circular"
-                onClick={() =>
-                  selectedModel &&
-                  setFavoriteModel(
-                    selectedModel === favoriteModel ? "" : selectedModel,
-                  )
-                }
+                onClick={handleFavoriteToggle}
                 disabled={!selectedModel || isLoadingModels}
                 title={
-                  selectedModel === favoriteModel
-                    ? "Unset as favorite model"
-                    : "Set as favorite model"
+                  isFavoriteModel ? "Unset as favorite model" : "Set as favorite model"
                 }
                 aria-label={
-                  selectedModel === favoriteModel
-                    ? "Unset as favorite model"
-                    : "Set as favorite model"
+                  isFavoriteModel ? "Unset as favorite model" : "Set as favorite model"
                 }
                 className="model-selector_favorite-button"
               >
-                {selectedModel === favoriteModel ? "★" : "☆"}
+                {isFavoriteModel ? "★" : "☆"}
               </Button>
             </div>
           </div>
@@ -323,56 +372,33 @@ export const TranslationPage: React.FC = () => {
           outputLanguageLabel={outputLanguageLabel}
           characterCount={characterCount}
           wordCount={wordCount}
-          onClearInput={() => {
-            setInputText("");
-            setTranslatedText("");
-            setTranslationError(null);
-          }}
+          onClearInput={handleClearInput}
           isOverLimit={isOverLimit}
           maxCharacters={MAX_INPUT_CHARACTERS}
-          onCopySuccess={() =>
-            addToast({
-              variant: "success",
-              title: "Success",
-              message:
-                mode === "correct"
-                  ? "Corrected text copied to clipboard."
-                  : "Translated text copied to clipboard.",
-            })
-          }
-          onCopyError={() =>
-            addToast({
-              variant: "error",
-              title: "Copy Failed",
-              message: "Could not copy text to clipboard.",
-            })
-          }
+          onCopySuccess={handleCopySuccess}
+          onCopyError={handleCopyError}
           alternativeTranslations={alternativeTranslations}
-          onSelectAlternative={(text) => setTranslatedText(text)}
+          onSelectAlternative={handleSelectAlternative}
         />
 
         <div className="action-buttons">
           <div className="action-buttons_left">
-            <div
-              className="mode-toggle"
-              role="tablist"
-              aria-label="Processing mode"
-            >
+            <div className="mode-toggle" role="tablist" aria-label="Processing mode">
               <Button
                 variant="transparent"
                 onClick={() => setMode("translate")}
-                className={`mode-toggle_button ${mode === "translate" ? "mode-toggle_button-active" : ""}`}
+                className={`mode-toggle_button ${!isCorrectMode ? "mode-toggle_button-active" : ""}`}
                 aria-label="Translate mode"
-                aria-pressed={mode === "translate"}
+                aria-pressed={!isCorrectMode}
               >
                 Translate
               </Button>
               <Button
                 variant="transparent"
                 onClick={() => setMode("correct")}
-                className={`mode-toggle_button ${mode === "correct" ? "mode-toggle_button-active" : ""}`}
+                className={`mode-toggle_button ${isCorrectMode ? "mode-toggle_button-active" : ""}`}
                 aria-label="Correct mode"
-                aria-pressed={mode === "correct"}
+                aria-pressed={isCorrectMode}
               >
                 Correct
               </Button>
@@ -380,13 +406,13 @@ export const TranslationPage: React.FC = () => {
           </div>
           <div className="action-buttons_right">
             <Button
-              variant={inputLanguage !== "auto" ? "secondary" : "primary"}
+              variant={hasManualSourceLanguage ? "secondary" : "primary"}
               onClick={() => fileInputRef.current?.click()}
               disabled={isTranslating}
             >
-              {mode === "correct" ? "Correct Document" : "Translate Document"}
+              {isCorrectMode ? "Correct Document" : "Translate Document"}
             </Button>
-            {inputLanguage !== "auto" && (
+            {hasManualSourceLanguage && (
               <Button
                 variant="primary"
                 onClick={handleTranslateClick}
@@ -401,11 +427,11 @@ export const TranslationPage: React.FC = () => {
                   isOverLimit
                     ? `Input exceeds character limit of ${MAX_INPUT_CHARACTERS.toLocaleString()}`
                     : !selectedModel || modelError
-                      ? `A model must be selected to ${mode === "correct" ? "correct" : "translate"}`
-                      : `${mode === "correct" ? "Correct" : "Translate"} the input text (Ctrl+Enter)`
+                      ? `A model must be selected to ${actionLabelLower}`
+                      : `${actionLabel} the input text (Ctrl+Enter)`
                 }
               >
-                {mode === "correct" ? "Correct" : "Translate"}
+                {actionLabel}
               </Button>
             )}
           </div>

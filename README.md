@@ -2,13 +2,13 @@
 
 ![image](preview.webp)
 
-A locally-run translation application powered by [Ollama](https://ollama.com/). Private, fast, and accurate translations directly on your machine.
+A locally-run translation application powered by [Ollama](https://ollama.com/) or [llama.cpp](https://github.com/ggml-org/llama.cpp). Private, fast, and accurate translations directly on your machine.
 
 ## Prerequisites
 
 - [Bun](https://bun.sh/) (or npm)
-- [Ollama](https://ollama.com/) installed and running
-- An Ollama model installed
+- Ollama or llama.cpp installed and running
+- A compatible local model
 
 ## Installation
 
@@ -21,10 +21,53 @@ bun install
 ## Running
 
 ```sh
+bun run build
 bun run preview
 ```
 
-**Important:** Ollama must be running in the background (`ollama serve`)
+Interlingua discovers both providers automatically:
+
+- Ollama: `http://localhost:11434/api`
+- llama.cpp: `http://localhost:4256/v1`
+
+Start Ollama with `ollama serve`, or start llama.cpp with an OpenAI-compatible
+server, for example:
+
+```sh
+llama-server --model /path/to/model.gguf --host 0.0.0.0 --port 4256
+```
+
+## Checks and evaluation
+
+Run the deterministic repository checks without a model server:
+
+```sh
+bun run check
+```
+
+For coverage details:
+
+```sh
+bun run test:coverage
+bun run format:check
+bun run measure:runtime
+```
+
+The local TranslateGemma evaluation is opt-in because it requires a running
+provider. Set the model path or provider reference before running it:
+
+```sh
+INTERLINGUA_EVAL_PROVIDER=llamacpp \
+INTERLINGUA_EVAL_MODEL=/path/to/translategemma-4b-it.Q4_K_M.gguf \
+bun run benchmark:local
+```
+
+The benchmark reports detection accuracy, unknown results, translation
+fidelity checks, response-contract violations, format leakage, prompt size,
+cache hits, and mean/p50/p95 latency. Add `--strict --compare` to enforce
+thresholds and compare the current prompt with the legacy variant. Its
+fixtures are regression signals rather than a general translation-quality
+score.
 
 ## Recommended Models for Translation
 

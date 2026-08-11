@@ -16,6 +16,7 @@ export type LanguageCode =
   | "hi";
 
 export type ProcessingMode = "translate" | "correct";
+export type InferenceProvider = "ollama" | "llamacpp";
 
 export interface DropdownOption {
   value: string;
@@ -68,4 +69,22 @@ export interface OllamaChatResponse {
   prompt_eval_duration: number;
   eval_count: number;
   eval_duration: number;
+}
+
+export interface LlamaCppModel {
+  id: string;
+  object: "model";
+  created?: number;
+  owned_by?: string;
+}
+
+export interface LlamaCppModelsResponse {
+  object: "list";
+  data: LlamaCppModel[];
+}
+
+export interface LlamaCppChatResponse {
+  choices: Array<{
+    message: OllamaMessage;
+  }>;
 }

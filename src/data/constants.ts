@@ -1,4 +1,4 @@
-import { LanguageCode, DropdownOption } from "../types";
+import type { DropdownOption, LanguageCode } from "../types";
 
 const LANGUAGE_DATA = {
   auto: "Auto-Detect",
@@ -17,9 +17,9 @@ const LANGUAGE_DATA = {
   hi: "Hindi",
 } as const;
 
-export const languageOptions: DropdownOption[] = Object.entries(
-  LANGUAGE_DATA,
-).map(([value, label]) => ({ value, label }));
+export const languageOptions: DropdownOption[] = Object.entries(LANGUAGE_DATA).map(
+  ([value, label]) => ({ value, label }),
+);
 
 export const getLanguageLabel = (code: string): string =>
   LANGUAGE_DATA[code as LanguageCode] || code;
@@ -32,8 +32,8 @@ export const STORAGE_KEYS = {
 } as const;
 
 export const API = {
-  BASE_URL: "http://localhost:11434/api",
-  CONNECTION_ERROR_PREFIX: "Could not connect to Ollama.",
+  OLLAMA_BASE_URL: "http://localhost:11434/api",
+  LLAMA_CPP_BASE_URL: "http://localhost:4256/v1",
 } as const;
 
 export const LIMITS = {
@@ -52,6 +52,9 @@ export const TRANSLATION_CONFIG = {
     MAX_COUNT: 2,
     MAX_INPUT_CHARACTERS: 120,
     MAX_INPUT_WORDS: 14,
+  } as const,
+  DIAGNOSTICS: {
+    ENABLED: false,
   } as const,
   AI_PARAMS: {
     temperature: 0,

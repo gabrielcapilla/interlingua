@@ -1,7 +1,9 @@
+import type { FC } from "react";
+
 const AUTHOR = "Gabriel Capilla";
 const GITHUB_URL = "https://github.com/gabrielcapilla";
 
-export const AppFooter: React.FC = () => {
+export const AppFooter: FC = () => {
   const year = new Date().getFullYear();
 
   return (

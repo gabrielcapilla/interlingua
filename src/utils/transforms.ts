@@ -1,11 +1,48 @@
-import { OllamaTagsResponse, DropdownOption } from "../types";
+import type {
+  DropdownOption,
+  InferenceProvider,
+  LlamaCppModelsResponse,
+  OllamaTagsResponse,
+} from "../types";
+
+const MODEL_REFERENCE_SEPARATOR = ":";
+
+const isInferenceProvider = (value: string): value is InferenceProvider =>
+  value === "ollama" || value === "llamacpp";
+
+export const createModelReference = (
+  provider: InferenceProvider,
+  model: string,
+): string => `${provider}${MODEL_REFERENCE_SEPARATOR}${model}`;
+
+export const parseModelReference = (
+  reference: string,
+): { provider: InferenceProvider; model: string } => {
+  const separatorIndex = reference.indexOf(MODEL_REFERENCE_SEPARATOR);
+  if (separatorIndex < 0) return { provider: "ollama", model: reference };
+
+  const provider = reference.slice(0, separatorIndex);
+  const model = reference.slice(separatorIndex + 1);
+  if (!isInferenceProvider(provider)) {
+    return { provider: "ollama", model: reference };
+  }
+  return { provider, model };
+};
 
 export const mapOllamaModelsToOptions = (
   response: OllamaTagsResponse,
 ): DropdownOption[] =>
   response.models.map((model) => ({
-    value: model.name,
-    label: model.name,
+    value: createModelReference("ollama", model.name),
+    label: `${model.name} · Ollama`,
+  }));
+
+export const mapLlamaCppModelsToOptions = (
+  response: LlamaCppModelsResponse,
+): DropdownOption[] =>
+  response.data.map((model) => ({
+    value: createModelReference("llamacpp", model.id),
+    label: `${model.id.split("/").pop() || model.id} · llama.cpp`,
   }));
 
 export const addFavoriteMarker = (
@@ -22,9 +59,22 @@ export const isValidModel = (
   models: DropdownOption[],
 ): boolean => (model ? models.some((m) => m.value === model) : false);
 
-export const filterAutoLanguage = <T extends { value: string }>(
+export const filterAutoLanguage = <T extends { value: string }>(options: T[]): T[] =>
+  options.filter((opt) => opt.value !== "auto");
+
+export const filterOutputLanguages = <T extends { value: string }>(
   options: T[],
-): T[] => options.filter((opt) => opt.value !== "auto");
+  inputLanguage: string,
+): T[] =>
+  options.filter((option) => option.value !== "auto" && option.value !== inputLanguage);
+
+export const isSourceLanguageMismatch = (
+  inputLanguage: string,
+  detectedLanguage: string | null,
+): boolean =>
+  inputLanguage !== "auto" &&
+  detectedLanguage !== null &&
+  detectedLanguage !== inputLanguage;
 
 export const findOptionByValue = <T extends { value: string }>(
   options: T[],
@@ -34,25 +84,30 @@ export const findOptionByValue = <T extends { value: string }>(
 export const generateToastId = (): string => `${Date.now()}-${Math.random()}`;
 
 export const countWords = (text: string): number =>
-  text.trim() ? (text.trim().match(/\S+/g)?.length ?? 0) : 0;
+  text.trim().match(/\S+/g)?.length ?? 0;
+
+export const shouldScheduleAutoTranslation = (
+  inputText: string,
+  lastRequestedText: string,
+): boolean => Boolean(inputText.trim()) && inputText !== lastRequestedText;
 
 export const withTimeout = async <T>(
-  fn: () => Promise<T>,
+  fn: (signal: AbortSignal) => Promise<T>,
   ms: number,
 ): Promise<T> => {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), ms);
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`Operation timed out after ${ms}ms`));
+      controller.abort();
+    }, ms);
+  });
 
   try {
-    const result = await fn();
-    clearTimeout(timeout);
-    return result;
-  } catch (error) {
-    clearTimeout(timeout);
-    if (error instanceof Error && error.name === "AbortError") {
-      throw new Error(`Operation timed out after ${ms}ms`);
-    }
-    throw error;
+    return await Promise.race([fn(controller.signal), timeout]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
   }
 };
 
@@ -61,8 +116,7 @@ export const selectInitialModel = (
   favorite: string,
   available: DropdownOption[],
 ): string => {
-  if (!current && !favorite) return available[0]?.value ?? "";
-  if (current && available.some((m) => m.value === current)) return current;
-  if (favorite && available.some((m) => m.value === favorite)) return favorite;
+  if (isValidModel(current, available)) return current;
+  if (isValidModel(favorite, available)) return favorite;
   return available[0]?.value ?? "";
 };

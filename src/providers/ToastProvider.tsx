@@ -1,6 +1,7 @@
-import React, { createContext, useState, useCallback, ReactNode } from "react";
+import type { FC, ReactNode } from "react";
+import { createContext, useCallback, useState } from "react";
 import { Toast } from "../components/atoms/Toast";
-import { IconVariant } from "../utils/icons";
+import type { IconVariant } from "../utils/icons";
 import { generateToastId } from "../utils/transforms";
 
 export interface ToastMessage {
@@ -15,15 +16,13 @@ interface ToastContextType {
   addToast: (toast: Omit<ToastMessage, "id">) => void;
 }
 
-export const ToastContext = createContext<ToastContextType | undefined>(
-  undefined,
-);
+export const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 interface ToastProviderProps {
   children: ReactNode;
 }
 
-export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
+export const ToastProvider: FC<ToastProviderProps> = ({ children }) => {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const addToast = useCallback((toast: Omit<ToastMessage, "id">) => {
@@ -40,11 +39,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
       {children}
       <div className="toast-container">
         {toasts.map((toast) => (
-          <Toast
-            key={toast.id}
-            {...toast}
-            onDismiss={() => removeToast(toast.id)}
-          />
+          <Toast key={toast.id} {...toast} onDismiss={() => removeToast(toast.id)} />
         ))}
       </div>
     </ToastContext.Provider>

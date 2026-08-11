@@ -1,9 +1,21 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { DropdownOption } from "../types";
+import type { Dispatch, SetStateAction } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { STORAGE_KEYS } from "../data";
-import usePersistentState from "./usePersistentState";
-import { fetchOllamaModels as fetchModelsFromApi } from "../services/ollamaApi";
+import { fetchAvailableModels as fetchModelsFromApi } from "../services/ollamaApi";
+import type { DropdownOption } from "../types";
 import { addFavoriteMarker, selectInitialModel } from "../utils/transforms";
+import usePersistentState from "./usePersistentState";
+
+const getModelPlaceholder = (
+  isLoading: boolean,
+  error: string | null,
+  modelCount: number,
+): string =>
+  isLoading
+    ? "Loading models..."
+    : error || modelCount === 0
+      ? "No models available"
+      : "Select a model";
 
 interface OllamaModelsState {
   ollamaModels: DropdownOption[];
@@ -12,8 +24,8 @@ interface OllamaModelsState {
   isLoadingModels: boolean;
   modelError: string | null;
   dropdownPlaceholder: string;
-  setSelectedModel: React.Dispatch<React.SetStateAction<string>>;
-  setFavoriteModel: React.Dispatch<React.SetStateAction<string>>;
+  setSelectedModel: Dispatch<SetStateAction<string>>;
+  setFavoriteModel: Dispatch<SetStateAction<string>>;
   fetchOllamaModels: () => Promise<void>;
 }
 
@@ -39,14 +51,12 @@ const useOllamaModels = (): OllamaModelsState => {
       setRawModels(models);
 
       if (models.length === 0) {
-        setError("No Ollama models found. Ensure models are pulled in Ollama.");
+        setError("No models found in Ollama or llama.cpp.");
         setSelectedModel("");
         return;
       }
 
-      setSelectedModel(
-        selectInitialModel(selectedModel, favoriteModel, models),
-      );
+      setSelectedModel(selectInitialModel(selectedModel, favoriteModel, models));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
       setRawModels([]);
@@ -74,12 +84,7 @@ const useOllamaModels = (): OllamaModelsState => {
   );
 
   const placeholder = useMemo(
-    () =>
-      isLoading
-        ? "Loading models..."
-        : error || models.length === 0
-          ? "No models available"
-          : "Select a model",
+    () => getModelPlaceholder(isLoading, error, models.length),
     [isLoading, error, models.length],
   );
 

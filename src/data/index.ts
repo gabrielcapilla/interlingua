@@ -1,8 +1,8 @@
 export {
-  languageOptions,
-  getLanguageLabel,
-  STORAGE_KEYS,
   API,
+  getLanguageLabel,
   LIMITS,
+  languageOptions,
+  STORAGE_KEYS,
   TRANSLATION_CONFIG,
 } from "./constants";

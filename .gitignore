@@ -85,3 +85,5 @@ temp/
 # Project specific files
 dist-ssr/
 *.local
+
+# LLM specific

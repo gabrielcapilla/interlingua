@@ -1,8 +1,40 @@
-import { useState, useCallback, useRef, useMemo } from "react";
-import { OllamaMessage, ProcessingMode } from "../types";
+import type { Dispatch, SetStateAction } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { TRANSLATION_CONFIG } from "../config/constants";
+import {
+  createDiagnosticsRecorder,
+  type TranslationDiagnosticsRecorder,
+} from "../services/diagnostics";
 import { fetchTranslation } from "../services/ollamaApi";
-import { languageOptions } from "../config/constants";
+import {
+  createLanguageMismatchError,
+  createSameLanguageError,
+} from "../services/translationErrors";
+import {
+  createCorrectionPrompt,
+  createDetectionPrompt,
+  createLanguageLabels,
+  createTranslationPrompt,
+} from "../services/translationPrompts";
+import {
+  isShortExpression,
+  normalizeTranslationResponse,
+} from "../services/translationResponse";
+import type { ProcessingMode } from "../types";
+import {
+  detectMixedLanguageSignal,
+  getStrongLanguageSignal,
+  normalizeDetectedLanguageCode,
+} from "../utils/languageDetection";
+import { isSourceLanguageMismatch, parseModelReference } from "../utils/transforms";
+
+export {
+  createCorrectionPrompt,
+  createDetectionPrompt,
+  createTranslationPrompt,
+} from "../services/translationPrompts";
+export { normalizeTranslationResponse } from "../services/translationResponse";
+export { normalizeDetectedLanguageCode } from "../utils/languageDetection";
 
 interface UseTranslationProps {
   selectedModel: string;
@@ -17,191 +49,63 @@ interface UseTranslationReturn {
   detectedSourceLanguage: string | null;
   isTranslating: boolean;
   translationError: string | null;
-  setTranslationError: React.Dispatch<React.SetStateAction<string | null>>;
+  setTranslationError: Dispatch<SetStateAction<string | null>>;
   translateText: (text: string) => Promise<void>;
-  setTranslatedText: React.Dispatch<React.SetStateAction<string>>;
+  setTranslatedText: Dispatch<SetStateAction<string>>;
+  diagnostics: TranslationDiagnosticsRecorder;
 }
 
-const SUPPORTED_LANGUAGE_CODES = languageOptions
-  .map((option) => option.value)
-  .filter((code) => code !== "auto");
+type DetectionConfidence = "high" | "medium" | "low";
+type DetectionStrategy = "strong-signal" | "mixed" | "model" | "error";
+type DetectionResult = {
+  code: string | null;
+  confidence: DetectionConfidence;
+  strategy: DetectionStrategy;
+};
 
-const SUPPORTED_LANGUAGE_CODE_SET = new Set(SUPPORTED_LANGUAGE_CODES);
-
-const createTranslationPrompt = (
+const createTranslationRequestKey = (
+  selectedModel: string,
+  inputLanguage: string,
+  outputLanguage: string,
+  mode: ProcessingMode,
   text: string,
-  inputLang: string,
-  outputLang: string,
-  languageLabels: Record<string, string>,
-  alternativesEnabled: boolean,
-  maxAlternatives: number,
-): OllamaMessage[] => {
-  const sourceCode = inputLang === "auto" ? "auto" : inputLang;
-  const sourceLabel =
-    inputLang === "auto"
-      ? "Auto-Detect"
-      : languageLabels[inputLang] || inputLang;
-  const targetLabel = languageLabels[outputLang] || outputLang;
+): string => [selectedModel, inputLanguage, outputLanguage, mode, text].join("|");
 
-  const userMessage = `Translate the following text from ${sourceLabel} (${sourceCode}) to ${targetLabel} (${outputLang}).
-Return only the translated text in the first line.
-${alternativesEnabled ? `If there are natural colloquial variants, add up to ${maxAlternatives} extra lines, each prefixed with "ALT: ".` : ""}
-Preserve the original structure exactly: keep the same line breaks, blank lines, list structure, indentation, and code block fences.
-Do not include explanations.
+const createDetectionCacheKey = (selectedModel: string, text: string): string =>
+  [selectedModel, text].join("\u0000");
 
-Text:
-\`\`\`
-${text}
-\`\`\``;
-
-  return [{ role: "user", content: userMessage }];
-};
-
-const createCorrectionPrompt = (
+const detectSourceLanguage = async (
+  model: string,
   text: string,
-  inputLang: string,
-  languageLabels: Record<string, string>,
-): OllamaMessage[] => {
-  const sourceCode = inputLang === "auto" ? "auto" : inputLang;
-  const sourceLabel =
-    inputLang === "auto"
-      ? "Auto-Detect"
-      : languageLabels[inputLang] || inputLang;
-
-  const userMessage = `Correct the following text in ${sourceLabel} (${sourceCode}).
-Return only the corrected text.
-Preserve the original structure exactly: keep the same line breaks, blank lines, list structure, indentation, and code block fences.
-Do not translate to another language.
-Do not include explanations.
-
-Text:
-\`\`\`
-${text}
-\`\`\``;
-
-  return [{ role: "user", content: userMessage }];
-};
-
-const createDetectionPrompt = (text: string): OllamaMessage[] => {
-  const userMessage = `Detect the source language of the text.
-Return only one ISO 639-1 language code from this allowed list: ${SUPPORTED_LANGUAGE_CODES.join(", ")}.
-Do not add explanations or extra text.
-
-Text:
-\`\`\`
-${text}
-\`\`\``;
-
-  return [{ role: "user", content: userMessage }];
-};
-
-const normalizeDetectedLanguageCode = (raw: string): string | null => {
-  const cleaned = raw.trim().toLowerCase().replace(/`/g, "");
-  if (!cleaned) return null;
-
-  const candidate = cleaned.split(/\s+/)[0].replace(/[^a-z_-]/g, "");
-  if (!candidate) return null;
-
-  const base = candidate.split(/[-_]/)[0];
-  if (SUPPORTED_LANGUAGE_CODE_SET.has(base)) return base;
-
-  return null;
-};
-
-const isShortExpression = (text: string): boolean => {
-  const compact = text.trim();
-  if (!compact) return false;
-
-  const words = compact.split(/\s+/).filter(Boolean).length;
-  const lineCount = compact.split(/\r?\n/).filter((line) => line.trim()).length;
-
-  return (
-    lineCount <= 1 &&
-    compact.length <= TRANSLATION_CONFIG.ALTERNATIVES.MAX_INPUT_CHARACTERS &&
-    words <= TRANSLATION_CONFIG.ALTERNATIVES.MAX_INPUT_WORDS
-  );
-};
-
-const stripTranslationPrefix = (value: string): string =>
-  value.replace(
-    /^(translation|translated text|traduccion|traducción)\s*:\s*/i,
-    "",
-  );
-
-const cleanPrefix = (value: string): string =>
-  stripTranslationPrefix(value).trim();
-
-const normalizeTranslationResponse = (
-  raw: string,
-  maxAlternatives: number,
-  allowAlternatives: boolean,
-  sourceHasCodeFences: boolean,
-): { primary: string; alternatives: string[] } => {
-  const text = raw.replace(/^\uFEFF/, "");
-  if (!text.trim()) return { primary: "", alternatives: [] };
-
-  const allLines = text.split(/\r?\n/);
-  const altCandidates: string[] = [];
-  const primaryLines: string[] = [];
-
-  for (const line of allLines) {
-    if (/^\s*ALT:\s*/i.test(line)) {
-      altCandidates.push(cleanPrefix(line.replace(/^\s*ALT:\s*/i, "")));
-      continue;
-    }
-    primaryLines.push(line);
+): Promise<DetectionResult> => {
+  if (detectMixedLanguageSignal(text)) {
+    return { code: null, confidence: "high", strategy: "mixed" };
   }
 
-  const taggedAlternatives = altCandidates
-    .filter(Boolean)
-    .slice(0, maxAlternatives);
-  const rebuiltPrimary = primaryLines.join("\n");
-  let primary = stripTranslationPrefix(rebuiltPrimary).replace(/\s+$/g, "");
-  if (!primary.trim())
-    primary = stripTranslationPrefix(text).replace(/\s+$/g, "");
-
-  if (!sourceHasCodeFences) {
-    const fencedMatch = primary.match(/^```[^\n]*\n([\s\S]*?)\n```$/);
-    if (fencedMatch) primary = fencedMatch[1];
-
-    // Remove stray markdown fence lines if model adds them accidentally.
-    const withoutFenceLines = primary
-      .split(/\r?\n/)
-      .filter((line) => line.trim() !== "```")
-      .join("\n");
-    primary = withoutFenceLines;
-  }
-
-  if (primary.includes("```")) {
+  const strongSignal = getStrongLanguageSignal(text);
+  if (strongSignal) {
     return {
-      primary,
-      alternatives: allowAlternatives ? taggedAlternatives : [],
+      code: strongSignal.language,
+      confidence: strongSignal.confidence,
+      strategy: "strong-signal",
     };
   }
 
-  if (
-    allowAlternatives &&
-    !taggedAlternatives.length &&
-    !primary.includes("\n") &&
-    primary.includes(" / ")
-  ) {
-    const parts = primary
-      .split(/\s*\/\s*/)
-      .map((part) => cleanPrefix(part))
-      .filter(Boolean);
-
-    if (parts.length > 1) {
-      return {
-        primary: parts[0],
-        alternatives: parts.slice(1, 1 + maxAlternatives),
-      };
-    }
+  try {
+    const detection = await fetchTranslation({
+      model,
+      messages: createDetectionPrompt(text),
+      options: TRANSLATION_CONFIG.AI_PARAMS,
+    });
+    const code = normalizeDetectedLanguageCode(detection);
+    return {
+      code,
+      confidence: code && text.trim().split(/\s+/).length >= 3 ? "medium" : "low",
+      strategy: "model",
+    };
+  } catch {
+    return { code: null, confidence: "low", strategy: "error" };
   }
-
-  return {
-    primary,
-    alternatives: allowAlternatives ? taggedAlternatives : [],
-  };
 };
 
 const useTranslation = ({
@@ -211,26 +115,26 @@ const useTranslation = ({
   mode,
 }: UseTranslationProps): UseTranslationReturn => {
   const [translatedText, setTranslatedText] = useState("");
-  const [alternativeTranslations, setAlternativeTranslations] = useState<
-    string[]
-  >([]);
-  const [detectedSourceLanguage, setDetectedSourceLanguage] = useState<
-    string | null
-  >(null);
+  const [alternativeTranslations, setAlternativeTranslations] = useState<string[]>([]);
+  const [detectedSourceLanguage, setDetectedSourceLanguage] = useState<string | null>(
+    null,
+  );
   const [isTranslating, setIsTranslating] = useState(false);
   const [translationError, setTranslationError] = useState<string | null>(null);
 
   const requestId = useRef(0);
   const isTranslatingRef = useRef(false);
   const lastRequestKeyRef = useRef("");
+  const lastDetectionRef = useRef<{
+    key: string;
+    result: DetectionResult;
+  } | null>(null);
 
-  const languageLabels = useMemo(() => {
-    const labels: Record<string, string> = {};
-    for (const { value, label } of languageOptions) {
-      labels[value] = value === "ca" ? `${label} (from Catalonia)` : label;
-    }
-    return labels;
-  }, []);
+  const languageLabels = useMemo(createLanguageLabels, []);
+  const diagnostics = useMemo(
+    () => createDiagnosticsRecorder(TRANSLATION_CONFIG.DIAGNOSTICS.ENABLED),
+    [],
+  );
 
   const translateText = useCallback(
     async (text: string) => {
@@ -238,13 +142,13 @@ const useTranslation = ({
       if (!trimmed || !selectedModel || isTranslatingRef.current) return;
 
       const current = ++requestId.current;
-      const requestKey = [
+      const requestKey = createTranslationRequestKey(
         selectedModel,
         inputLanguage,
         outputLanguage,
         mode,
         trimmed,
-      ].join("|");
+      );
       if (requestKey === lastRequestKeyRef.current && !translationError) return;
       lastRequestKeyRef.current = requestKey;
 
@@ -253,24 +157,73 @@ const useTranslation = ({
       setTranslationError(null);
       setAlternativeTranslations([]);
       setDetectedSourceLanguage(null);
-      if (current !== requestId.current) setTranslatedText("");
+
+      const finishWithError = (message: string): void => {
+        if (current !== requestId.current) return;
+        setTranslatedText("");
+        setAlternativeTranslations([]);
+        setTranslationError(message);
+        setIsTranslating(false);
+        isTranslatingRef.current = false;
+      };
 
       let sourceLanguageForTranslation = inputLanguage;
-      if (inputLanguage === "auto") {
-        try {
-          const detection = await fetchTranslation({
-            model: selectedModel,
-            messages: createDetectionPrompt(trimmed),
-            options: TRANSLATION_CONFIG.AI_PARAMS,
+      const detectionKey = createDetectionCacheKey(selectedModel, trimmed);
+      const cachedDetection = lastDetectionRef.current;
+      let detectionResult =
+        cachedDetection?.key === detectionKey ? cachedDetection.result : null;
+      const detectionStartedAt = performance.now();
+      const detectionCacheHit = detectionResult !== null;
+
+      if (!detectionResult) {
+        detectionResult = await detectSourceLanguage(selectedModel, trimmed);
+        lastDetectionRef.current = { key: detectionKey, result: detectionResult };
+      }
+
+      const modelReference = parseModelReference(selectedModel);
+      diagnostics.record({
+        provider: modelReference.provider,
+        model: modelReference.model,
+        phase: "detection",
+        outcome:
+          detectionResult.strategy === "error"
+            ? "error"
+            : detectionResult.strategy === "mixed"
+              ? "abstained"
+              : detectionResult.code
+                ? "success"
+                : "unknown",
+        inputCharacters: trimmed.length,
+        latencyMs: performance.now() - detectionStartedAt,
+        cacheHit: detectionCacheHit,
+        confidence: detectionResult.confidence,
+      });
+
+      const detectedCode =
+        detectionResult?.confidence === "low" ? null : detectionResult?.code;
+
+      if (detectedCode) {
+        if (current !== requestId.current) return;
+        setDetectedSourceLanguage(detectedCode);
+
+        if (inputLanguage === "auto") {
+          sourceLanguageForTranslation = detectedCode;
+        } else if (isSourceLanguageMismatch(inputLanguage, detectedCode)) {
+          diagnostics.record({
+            provider: modelReference.provider,
+            model: modelReference.model,
+            phase: "translation",
+            outcome: "mismatch",
+            inputCharacters: trimmed.length,
+            latencyMs: 0,
           });
-          const detectedCode = normalizeDetectedLanguageCode(detection);
-          if (detectedCode) {
-            sourceLanguageForTranslation = detectedCode;
-            setDetectedSourceLanguage(detectedCode);
-          }
-        } catch {
-          sourceLanguageForTranslation = "auto";
+          finishWithError(
+            createLanguageMismatchError(inputLanguage, detectedCode, languageLabels),
+          );
+          return;
         }
+      } else if (inputLanguage === "auto") {
+        sourceLanguageForTranslation = "auto";
       }
 
       if (
@@ -281,15 +234,15 @@ const useTranslation = ({
         const languageLabel =
           languageLabels[sourceLanguageForTranslation] ??
           sourceLanguageForTranslation.toUpperCase();
-        if (current === requestId.current) {
-          setTranslatedText("");
-          setAlternativeTranslations([]);
-          setTranslationError(
-            `Source and target are both ${languageLabel}. Please choose a different target language.`,
-          );
-          setIsTranslating(false);
-          isTranslatingRef.current = false;
-        }
+        diagnostics.record({
+          provider: modelReference.provider,
+          model: modelReference.model,
+          phase: "translation",
+          outcome: "same-language",
+          inputCharacters: trimmed.length,
+          latencyMs: 0,
+        });
+        finishWithError(createSameLanguageError(languageLabel));
         return;
       }
 
@@ -313,6 +266,7 @@ const useTranslation = ({
               TRANSLATION_CONFIG.ALTERNATIVES.MAX_COUNT,
             );
 
+      const translationStartedAt = performance.now();
       try {
         const result = await fetchTranslation({
           model: selectedModel,
@@ -330,11 +284,25 @@ const useTranslation = ({
           setTranslatedText(normalized.primary);
           setAlternativeTranslations(normalized.alternatives);
         }
+        diagnostics.record({
+          provider: modelReference.provider,
+          model: modelReference.model,
+          phase: "translation",
+          outcome: "success",
+          inputCharacters: trimmed.length,
+          latencyMs: performance.now() - translationStartedAt,
+        });
       } catch (error) {
+        diagnostics.record({
+          provider: modelReference.provider,
+          model: modelReference.model,
+          phase: "translation",
+          outcome: "error",
+          inputCharacters: trimmed.length,
+          latencyMs: performance.now() - translationStartedAt,
+        });
         if (current === requestId.current) {
-          setTranslationError(
-            error instanceof Error ? error.message : "Unknown error",
-          );
+          setTranslationError(error instanceof Error ? error.message : "Unknown error");
           setTranslatedText("");
           setAlternativeTranslations([]);
         }
@@ -352,8 +320,7 @@ const useTranslation = ({
       mode,
       translationError,
       languageLabels,
-      setTranslatedText,
-      setTranslationError,
+      diagnostics,
     ],
   );
 
@@ -366,6 +333,7 @@ const useTranslation = ({
     setTranslationError,
     translateText,
     setTranslatedText,
+    diagnostics,
   };
 };
 
