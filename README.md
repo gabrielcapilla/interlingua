@@ -108,3 +108,7 @@ Provider runtimes may expose larger context windows, but Interlingua keeps each
 translation request within a conservative TranslateGemma budget. See the
 [TranslateGemma model card](https://huggingface.co/google/translategemma-4b-it)
 for the model's documented context guidance.
+
+## License
+
+Interlingua is released under the [MIT License](LICENSE).
