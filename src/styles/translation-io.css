@@ -19,10 +19,6 @@
     transition: border-color var(--duration-fast) var(--curve-easy-ease);
 }
 
-.translation-io_panel-error {
-    border-color: var(--color-accent-red);
-}
-
 .translation-io_header {
     padding: var(--spacing-s) var(--spacing-m);
     border-bottom: var(--stroke-width-thick) solid var(--color-stroke-1);
@@ -38,14 +34,64 @@
     background-color: var(--color-bg-2);
 }
 
-.translation-io_overlay {
+.translation-io_progress-overlay {
     position: absolute;
     inset: 0;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-end;
+    gap: var(--spacing-s);
+    padding: var(--spacing-s);
     pointer-events: none;
-    background: color-mix(in srgb, var(--color-bg-2) 55%, transparent);
+}
+
+.translation-io_progress-bar {
+    flex: 1;
+    height: 0.5rem;
+    overflow: hidden;
+    border: var(--stroke-width-thick) solid var(--color-stroke-1);
+    border-radius: var(--border-radius-small);
+    background-color: var(--color-bg-1);
+    box-shadow: 2px 2px 0 0 var(--color-shadow);
+}
+
+.translation-io_progress-fill {
+    display: block;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        var(--color-accent-yellow),
+        var(--color-accent-red)
+    );
+    transition: width var(--duration-fast) var(--curve-easy-ease);
+}
+
+.translation-io_progress-fill-indeterminate {
+    width: 35%;
+    animation: translation-io_progress-slide 1.2s ease-in-out infinite;
+}
+
+.translation-io_cancel-button {
+    flex-shrink: 0;
+    pointer-events: auto;
+}
+
+@keyframes translation-io_progress-slide {
+    0% {
+        transform: translateX(-100%);
+    }
+    50% {
+        transform: translateX(185%);
+    }
+    100% {
+        transform: translateX(285%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .translation-io_progress-fill-indeterminate {
+        animation: none;
+        width: 100%;
+    }
 }
 
 .translation-io_footer-output {
@@ -119,11 +165,6 @@
     font-size: var(--font-size-200);
     color: var(--color-text-3);
     flex-shrink: 0;
-}
-
-.translation-io_char-count-error {
-    color: var(--color-accent-red);
-    font-weight: var(--font-weight-medium);
 }
 
 .translation-io_copy-button-wrapper {

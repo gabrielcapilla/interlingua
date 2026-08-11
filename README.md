@@ -37,6 +37,25 @@ server, for example:
 llama-server --model /path/to/model.gguf --host 0.0.0.0 --port 4256
 ```
 
+## Long documents
+
+There is no fixed character limit in the editor. Long input is divided into
+ordered model requests using a conservative source-token budget, keeping
+short documents' paragraphs atomic and packing complete paragraphs for larger
+documents. It falls back to sentence, clause, word, and finally grapheme
+boundaries only when necessary. Separators are reassembled locally so
+formatting is not delegated to chunk boundaries.
+
+The default budget is 1,600 estimated source tokens per translation request,
+with a 600-token representative sample for language detection. Larger drafts
+require an explicit Translate action instead of automatic translation and show
+chunk progress with cancellation. A practical 512-chunk safety guard protects
+the browser and local inference server; it is an operational safeguard, not a
+quality-driven character limit. Oversized protected URLs, identifiers, or code
+blocks are reported rather than silently split. Provider streams are rendered
+incrementally in the output frame, with an indeterminate progress bar for a
+single request and chunk-completion progress for longer drafts.
+
 ## Checks and evaluation
 
 Run the deterministic repository checks without a model server:
@@ -85,4 +104,7 @@ ollama pull translategemma
 - `translategemma:12b` (~8.1GB) - Best balance of speed and quality
 - `translategemma:27b` (~17GB) - Highest quality for complex texts
 
-**All variants support 128K context window and multimodal capabilities.**
+Provider runtimes may expose larger context windows, but Interlingua keeps each
+translation request within a conservative TranslateGemma budget. See the
+[TranslateGemma model card](https://huggingface.co/google/translategemma-4b-it)
+for the model's documented context guidance.

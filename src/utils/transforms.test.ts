@@ -2,10 +2,12 @@ import { describe, expect, it } from "bun:test";
 import {
   countWords,
   filterOutputLanguages,
+  isAbortError,
   isSourceLanguageMismatch,
   parseModelReference,
   selectInitialModel,
   shouldScheduleAutoTranslation,
+  withInactivityTimeout,
   withTimeout,
 } from "./transforms";
 
@@ -22,6 +24,58 @@ describe("withTimeout", () => {
   it("aborts and rejects work that exceeds the deadline", async () => {
     let aborted = false;
     const work = withTimeout(
+      (signal) =>
+        new Promise<never>((_, reject) => {
+          signal.addEventListener("abort", () => {
+            aborted = true;
+            reject(new DOMException("Aborted", "AbortError"));
+          });
+        }),
+      5,
+    );
+
+    await expect(work).rejects.toThrow("Operation timed out after 5ms");
+    expect(aborted).toBe(true);
+  });
+
+  it("propagates a caller cancellation signal", async () => {
+    const controller = new AbortController();
+    const work = withTimeout(
+      (signal) =>
+        new Promise<never>((_, reject) => {
+          signal.addEventListener("abort", () => {
+            reject(new DOMException("Aborted", "AbortError"));
+          });
+        }),
+      100,
+      controller.signal,
+    );
+
+    controller.abort();
+    try {
+      await work;
+      expect.unreachable();
+    } catch (error) {
+      expect(isAbortError(error)).toBe(true);
+    }
+  });
+});
+
+describe("withInactivityTimeout", () => {
+  it("resets the deadline when streaming work receives activity", async () => {
+    await expect(
+      withInactivityTimeout(async (_signal, onActivity) => {
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        onActivity();
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        return "done";
+      }, 20),
+    ).resolves.toBe("done");
+  });
+
+  it("aborts and rejects when streaming becomes inactive", async () => {
+    let aborted = false;
+    const work = withInactivityTimeout(
       (signal) =>
         new Promise<never>((_, reject) => {
           signal.addEventListener("abort", () => {

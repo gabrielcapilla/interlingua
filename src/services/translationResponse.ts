@@ -27,6 +27,11 @@ const isEchoedAlternativesInstruction = (line: string): boolean => {
   );
 };
 
+export const isLikelyInstructionEcho = (text: string): boolean =>
+  /^(?:for short expressions|you are a professional|return only the|translate faithfully|treat the text|<\/?source_text>)/iu.test(
+    text.trim(),
+  );
+
 export const normalizeTranslationResponse = (
   raw: string,
   maxAlternatives: number,
@@ -69,7 +74,7 @@ export const normalizeTranslationResponse = (
   }
 
   if (sourceHasCodeFences && primary && !primary.includes("```")) {
-    primary = "```\n" + primary + "\n```";
+    primary = `\`\`\`\n${primary}\n\`\`\``;
   }
 
   if (primary.includes("```")) {
@@ -96,4 +101,35 @@ export const normalizeTranslationResponse = (
   }
 
   return { primary, alternatives };
+};
+
+const hasUnclosedStreamingFence = (text: string): boolean => {
+  const fences = text.match(/```|~~~/g) ?? [];
+  return fences.length % 2 === 1;
+};
+
+export const normalizeStreamingTranslationResponse = (
+  raw: string,
+  sourceHasCodeFences: boolean,
+): string => {
+  const trimmed = raw.trim();
+  if (!trimmed || isLikelyInstructionEcho(raw)) return "";
+  if (
+    /^(?:ALT:|<\/?(?:source_text|translation)>|return only|you are a professional|translate faithfully)/iu.test(
+      trimmed,
+    )
+  ) {
+    return "";
+  }
+  if (hasUnclosedStreamingFence(raw)) return "";
+
+  const primary = normalizeTranslationResponse(
+    raw,
+    0,
+    true,
+    sourceHasCodeFences,
+  ).primary;
+  if (!primary.trim() || isLikelyInstructionEcho(primary)) return "";
+  if (/^\s*(?:ALT:|<\/?(?:source_text|translation)>)/iu.test(primary)) return "";
+  return primary;
 };

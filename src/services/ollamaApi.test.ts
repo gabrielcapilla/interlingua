@@ -9,6 +9,22 @@ const jsonResponse = (body: unknown, status = 200): Response =>
     headers: { "Content-Type": "application/json" },
   });
 
+const streamingResponse = (body: string | readonly Uint8Array[]): Response =>
+  new Response(
+    new ReadableStream<Uint8Array>({
+      start(controller) {
+        const chunks =
+          typeof body === "string" ? [new TextEncoder().encode(body)] : body;
+        for (const chunk of chunks) controller.enqueue(chunk);
+        controller.close();
+      },
+    }),
+    {
+      status: 200,
+      headers: { "Content-Type": "application/x-ndjson" },
+    },
+  );
+
 type FetchHandler = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
 const mockFetch = (handler: FetchHandler): void => {
@@ -120,5 +136,95 @@ describe("fetchTranslation", () => {
       temperature: 0,
       seed: 42,
     });
+  });
+
+  it("forwards caller cancellation to the provider request", async () => {
+    const controller = new AbortController();
+    let requestSignal: AbortSignal | undefined;
+    mockFetch(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      requestSignal = init?.signal ?? undefined;
+      return jsonResponse({ message: { role: "assistant", content: "Hola" } });
+    });
+
+    await fetchTranslation({
+      model: "ollama:translategemma:4b",
+      messages: [{ role: "user", content: "Hello" }],
+      signal: controller.signal,
+    });
+
+    expect(requestSignal).toBeDefined();
+    expect(requestSignal).not.toBe(controller.signal);
+  });
+
+  it("streams Ollama deltas across fragmented UTF-8 NDJSON frames", async () => {
+    const frames = [
+      ": keepalive\r\n",
+      '{"message":{"role":"assistant"},"done":false}\r\n',
+      '{"message":{"content":"Hola "},"done":false}\n',
+      '{"message":{"content":"😀"},"done":true}\n',
+    ].join("");
+    const encoded = new TextEncoder().encode(frames);
+    const emojiStart = encoded.indexOf(0xf0);
+    const chunks = [encoded.slice(0, emojiStart + 1), encoded.slice(emojiStart + 1)];
+    const deltas: string[] = [];
+    mockFetch(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      expect(JSON.parse(String(init?.body))).toMatchObject({ stream: true });
+      return streamingResponse(chunks);
+    });
+
+    await expect(
+      fetchTranslation({
+        model: "ollama:translategemma:4b",
+        messages: [{ role: "user", content: "Hello" }],
+        onDelta: (delta) => deltas.push(delta),
+      }),
+    ).resolves.toBe("Hola 😀");
+    expect(deltas).toEqual(["Hola ", "😀"]);
+  });
+
+  it("streams llama.cpp SSE role frames and finish reasons", async () => {
+    const deltas: string[] = [];
+    mockFetch(async () =>
+      streamingResponse(
+        [
+          ": keepalive\r\n\r\n",
+          'data: {"choices":[{"delta":{"role":"assistant"},"finish_reason":null}]}\r\n\r\n',
+          'data: {"choices":[{"delta":{"content":"Hi"},"finish_reason":null}]}\n\n',
+          'data: {"choices":[{"delta":{"content":"!"},"finish_reason":"stop"}]}\n\n',
+          "data: [DONE]\n\n",
+        ].join(""),
+      ),
+    );
+
+    await expect(
+      fetchTranslation({
+        model: "llamacpp:local.gguf",
+        messages: [{ role: "user", content: "Hello" }],
+        onDelta: (delta) => deltas.push(delta),
+      }),
+    ).resolves.toBe("Hi!");
+    expect(deltas).toEqual(["Hi", "!"]);
+  });
+
+  it("rejects truncated streams and provider stream errors", async () => {
+    mockFetch(async () =>
+      streamingResponse('{"message":{"content":"partial"},"done":false}\n'),
+    );
+    await expect(
+      fetchTranslation({
+        model: "ollama:translategemma:4b",
+        messages: [{ role: "user", content: "Hello" }],
+        onDelta: () => undefined,
+      }),
+    ).rejects.toThrow("terminal frame");
+
+    mockFetch(async () => streamingResponse('{"error":"model failed"}\n'));
+    await expect(
+      fetchTranslation({
+        model: "ollama:translategemma:4b",
+        messages: [{ role: "user", content: "Hello" }],
+        onDelta: () => undefined,
+      }),
+    ).rejects.toThrow("model failed");
   });
 });

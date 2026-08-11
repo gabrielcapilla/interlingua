@@ -108,18 +108,94 @@ describe("TranslationIO", () => {
     characterCount: 4,
     wordCount: 1,
     onClearInput: () => undefined,
-    isOverLimit: false,
-    maxCharacters: 6400,
+    translationProgress: null,
+    onCancelTranslation: () => undefined,
     onCopySuccess: () => undefined,
     onCopyError: () => undefined,
     onSelectAlternative: () => undefined,
   };
 
-  it("announces the loading state accessibly", () => {
-    render(<TranslationIO {...baseProps} isTranslating />);
+  it("shows accessible progress while translating", () => {
+    render(
+      <TranslationIO
+        {...baseProps}
+        isTranslating
+        translationProgress={{ completedChunks: 0, totalChunks: 1 }}
+      />,
+    );
 
-    expect(screen.getByRole("status", { name: "AI is thinking" })).toBeTruthy();
+    expect(
+      screen.getByRole("progressbar", { name: "Translation in progress" }),
+    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Cancel translation" })).toBeTruthy();
+    expect(
+      screen
+        .getByRole("textbox", { name: "Translated text" })
+        .getAttribute("placeholder"),
+    ).toBe("");
     expect(screen.queryByRole("button", { name: "Copy translated text" })).toBeNull();
+  });
+
+  it("shows chunk progress and allows cancellation", () => {
+    const onCancelTranslation = mock(() => undefined);
+    render(
+      <TranslationIO
+        {...baseProps}
+        isTranslating
+        translationProgress={{ completedChunks: 1, totalChunks: 3 }}
+        onCancelTranslation={onCancelTranslation}
+      />,
+    );
+
+    expect(
+      screen.getByRole("progressbar", { name: "Translation in progress" }),
+    ).toBeTruthy();
+    expect(screen.getByRole("progressbar").getAttribute("aria-valuenow")).toBe("33");
+    fireEvent.click(screen.getByRole("button", { name: "Cancel translation" }));
+    expect(onCancelTranslation).toHaveBeenCalledTimes(1);
+  });
+
+  it("uses an indeterminate progress bar for a single streamed chunk", () => {
+    render(
+      <TranslationIO
+        {...baseProps}
+        isTranslating
+        translationProgress={{ completedChunks: 0, totalChunks: 1 }}
+      />,
+    );
+
+    const progressBar = screen.getByRole("progressbar", {
+      name: "Translation in progress",
+    });
+    expect(progressBar.getAttribute("aria-valuenow")).toBeNull();
+    expect(screen.queryByText(/Translating chunk/)).toBeNull();
+  });
+
+  it("keeps the streamed output scrolled to the newest text", () => {
+    const { rerender } = render(
+      <TranslationIO
+        {...baseProps}
+        isTranslating
+        translatedText="First line"
+        translationProgress={{ completedChunks: 0, totalChunks: 1 }}
+      />,
+    );
+    const output = screen.getByRole("textbox", {
+      name: "Translated text",
+    }) as HTMLTextAreaElement;
+    Object.defineProperty(output, "scrollHeight", { configurable: true, value: 480 });
+    output.scrollTop = 0;
+
+    rerender(
+      <TranslationIO
+        {...baseProps}
+        isTranslating
+        translatedText="First line\nSecond line"
+        translationProgress={{ completedChunks: 0, totalChunks: 1 }}
+      />,
+    );
+
+    expect(output.scrollTop).toBe(480);
   });
 
   it("renders selectable alternatives and reports copy success", async () => {

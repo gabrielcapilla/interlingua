@@ -1,8 +1,7 @@
-import type { FC, ReactNode } from "react";
-import { useCallback } from "react";
-import { cn } from "../../../utils/cn";
+import type { FC, ReactNode, Ref } from "react";
+import { useCallback, useEffect, useRef } from "react";
+import type { TranslationProgress } from "../../../types";
 import { Button } from "../../atoms/Button";
-import { ThinkingIndicator } from "../../atoms/ThinkingIndicator";
 
 interface TranslationIOProps {
   inputText: string;
@@ -15,8 +14,8 @@ interface TranslationIOProps {
   characterCount: number;
   wordCount: number;
   onClearInput: () => void;
-  isOverLimit: boolean;
-  maxCharacters: number;
+  translationProgress: TranslationProgress | null;
+  onCancelTranslation: () => void;
   onCopySuccess: () => void;
   onCopyError: () => void;
   onSelectAlternative: (text: string) => void;
@@ -27,7 +26,8 @@ interface PanelProps {
   value: string;
   onChange: (value: string) => void;
   readOnly?: boolean;
-  isOverLimit?: boolean;
+  placeholder?: string;
+  textareaRef?: Ref<HTMLTextAreaElement>;
   footer?: ReactNode;
   actions?: ReactNode;
   overlay?: ReactNode;
@@ -40,21 +40,21 @@ const Panel: FC<PanelProps> = ({
   value,
   onChange,
   readOnly = false,
-  isOverLimit = false,
+  placeholder,
+  textareaRef,
   footer,
   actions,
   overlay,
 }) => (
-  <div
-    className={cn("translation-io_panel", isOverLimit && "translation-io_panel-error")}
-  >
+  <div className="translation-io_panel">
     <div className="translation-io_header">{label}</div>
     <div className="translation-io_text-area-wrapper">
       <textarea
         className="translation-io_text-area"
+        ref={textareaRef}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={readOnly ? "Translation" : "Enter text..."}
+        placeholder={placeholder ?? (readOnly ? "Translation" : "Enter text...")}
         readOnly={readOnly}
         aria-label={readOnly ? "Translated text" : "Input text for translation"}
       />
@@ -76,12 +76,14 @@ export const TranslationIO: FC<TranslationIOProps> = ({
   characterCount,
   wordCount,
   onClearInput,
-  isOverLimit,
-  maxCharacters,
+  translationProgress,
+  onCancelTranslation,
   onCopySuccess,
   onCopyError,
   onSelectAlternative,
 }) => {
+  const outputTextAreaRef = useRef<HTMLTextAreaElement>(null);
+
   const handleCopy = useCallback(async () => {
     if (!translatedText) return;
     try {
@@ -94,6 +96,19 @@ export const TranslationIO: FC<TranslationIOProps> = ({
 
   const hasAlternatives = !isTranslating && alternativeTranslations.length > 0;
   const canCopy = !isTranslating && Boolean(translatedText);
+  const isIndeterminateProgress = translationProgress?.totalChunks === 1;
+  const translationProgressPercent =
+    translationProgress && translationProgress.totalChunks > 1
+      ? Math.round(
+          (translationProgress.completedChunks / translationProgress.totalChunks) * 100,
+        )
+      : 0;
+
+  useEffect(() => {
+    if (!isTranslating || !outputTextAreaRef.current) return;
+    outputTextAreaRef.current.scrollTop =
+      translatedText.length > 0 ? outputTextAreaRef.current.scrollHeight : 0;
+  }, [translatedText, isTranslating]);
 
   return (
     <div className="translation-io">
@@ -101,12 +116,9 @@ export const TranslationIO: FC<TranslationIOProps> = ({
         label={inputLanguageLabel}
         value={inputText}
         onChange={setInputText}
-        isOverLimit={isOverLimit}
         footer={
           <div className="translation-io_footer">
-            <span className={isOverLimit ? "translation-io_char-count-error" : ""}>
-              {characterCount.toLocaleString()} / {maxCharacters.toLocaleString()}
-            </span>
+            <span>{characterCount.toLocaleString()} characters</span>
             <span>{wordCount} words</span>
           </div>
         }
@@ -130,10 +142,45 @@ export const TranslationIO: FC<TranslationIOProps> = ({
         value={translatedText}
         onChange={ignoreChange}
         readOnly
+        placeholder={isTranslating ? "" : "Translation"}
+        textareaRef={outputTextAreaRef}
         overlay={
-          isTranslating ? (
-            <div className="translation-io_overlay" aria-live="polite">
-              <ThinkingIndicator />
+          isTranslating && translationProgress ? (
+            <div className="translation-io_progress-overlay">
+              <div
+                className="translation-io_progress-bar"
+                role="progressbar"
+                aria-label="Translation in progress"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={
+                  isIndeterminateProgress ? undefined : translationProgressPercent
+                }
+              >
+                <span
+                  className={`translation-io_progress-fill${
+                    isIndeterminateProgress
+                      ? " translation-io_progress-fill-indeterminate"
+                      : ""
+                  }`}
+                  style={{
+                    width: isIndeterminateProgress
+                      ? undefined
+                      : `${translationProgressPercent}%`,
+                  }}
+                />
+              </div>
+              <Button
+                variant="secondary"
+                iconOnly
+                buttonShape="circular"
+                onClick={onCancelTranslation}
+                className="translation-io_cancel-button"
+                title="Cancel translation"
+                aria-label="Cancel translation"
+              >
+                ✕
+              </Button>
             </div>
           ) : null
         }

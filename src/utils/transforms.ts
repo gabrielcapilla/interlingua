@@ -91,23 +91,107 @@ export const shouldScheduleAutoTranslation = (
   lastRequestedText: string,
 ): boolean => Boolean(inputText.trim()) && inputText !== lastRequestedText;
 
+export const isAbortError = (error: unknown): boolean =>
+  (error instanceof DOMException && error.name === "AbortError") ||
+  (error instanceof Error && error.name === "AbortError");
+
 export const withTimeout = async <T>(
   fn: (signal: AbortSignal) => Promise<T>,
   ms: number,
+  externalSignal?: AbortSignal,
 ): Promise<T> => {
   const controller = new AbortController();
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  let removeExternalAbortListener: (() => void) | undefined;
   const timeout = new Promise<never>((_, reject) => {
     timeoutId = setTimeout(() => {
       reject(new Error(`Operation timed out after ${ms}ms`));
       controller.abort();
     }, ms);
   });
+  const externalAbort = externalSignal
+    ? new Promise<never>((_, reject) => {
+        const abort = (): void => {
+          controller.abort();
+          reject(
+            externalSignal.reason instanceof Error
+              ? externalSignal.reason
+              : new DOMException("The operation was aborted.", "AbortError"),
+          );
+        };
+        if (externalSignal.aborted) {
+          abort();
+        } else {
+          externalSignal.addEventListener("abort", abort, { once: true });
+          removeExternalAbortListener = () =>
+            externalSignal.removeEventListener("abort", abort);
+        }
+      })
+    : null;
 
   try {
-    return await Promise.race([fn(controller.signal), timeout]);
+    return await Promise.race(
+      externalAbort
+        ? [fn(controller.signal), timeout, externalAbort]
+        : [fn(controller.signal), timeout],
+    );
   } finally {
     if (timeoutId) clearTimeout(timeoutId);
+    removeExternalAbortListener?.();
+  }
+};
+
+export const withInactivityTimeout = async <T>(
+  fn: (signal: AbortSignal, onActivity: () => void) => Promise<T>,
+  ms: number,
+  externalSignal?: AbortSignal,
+): Promise<T> => {
+  const controller = new AbortController();
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  let removeExternalAbortListener: (() => void) | undefined;
+  let rejectTimeout: ((error: Error) => void) | undefined;
+
+  const resetTimeout = (): void => {
+    if (timeoutId) clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      rejectTimeout?.(new Error(`Operation timed out after ${ms}ms`));
+      controller.abort();
+    }, ms);
+  };
+
+  const timeout = new Promise<never>((_, reject) => {
+    rejectTimeout = reject;
+    resetTimeout();
+  });
+  const externalAbort = externalSignal
+    ? new Promise<never>((_, reject) => {
+        const abort = (): void => {
+          controller.abort();
+          reject(
+            externalSignal.reason instanceof Error
+              ? externalSignal.reason
+              : new DOMException("The operation was aborted.", "AbortError"),
+          );
+        };
+        if (externalSignal.aborted) {
+          abort();
+        } else {
+          externalSignal.addEventListener("abort", abort, { once: true });
+          removeExternalAbortListener = () =>
+            externalSignal.removeEventListener("abort", abort);
+        }
+      })
+    : null;
+
+  try {
+    return await Promise.race(
+      externalAbort
+        ? [fn(controller.signal, resetTimeout), timeout, externalAbort]
+        : [fn(controller.signal, resetTimeout), timeout],
+    );
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+    removeExternalAbortListener?.();
   }
 };
 

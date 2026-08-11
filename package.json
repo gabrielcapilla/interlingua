@@ -14,6 +14,7 @@
     "lint": "biome lint src scripts",
     "test:coverage": "bun test --max-concurrency=1 --coverage",
     "benchmark:local": "bun run scripts/evaluate-model.ts",
+    "measure:chunking": "bun run scripts/measure-chunking.ts",
     "measure:runtime": "bun run scripts/measure-runtime.ts",
     "preview": "vite preview"
   },

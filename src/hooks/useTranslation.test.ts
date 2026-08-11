@@ -3,6 +3,7 @@ import {
   createCorrectionPrompt,
   createDetectionPrompt,
   createTranslationPrompt,
+  normalizeStreamingTranslationResponse,
   normalizeTranslationResponse,
 } from "./useTranslation";
 
@@ -28,6 +29,9 @@ describe("TranslateGemma prompts", () => {
     );
     expect(content).toContain(
       "Do not add, omit, or alter meaning, details, negation, names, numbers, URLs, placeholders, tone, or line structure.",
+    );
+    expect(content).toContain(
+      "Translate every paragraph from beginning to end. Do not stop after the first paragraph.",
     );
     expect(content).toContain(`<source_text>\n${text}\n</source_text>`);
     expect(content.indexOf("</source_text>")).toBeLessThan(
@@ -69,6 +73,18 @@ describe("TranslateGemma prompts", () => {
     expect(
       normalizeTranslationResponse("ALT: Keep this label", 2, false, false),
     ).toEqual({ primary: "ALT: Keep this label", alternatives: [] });
+  });
+
+  it("keeps echoed instructions and alternatives out of streamed previews", () => {
+    expect(normalizeStreamingTranslationResponse("Hello\nALT: Hi", false)).toBe(
+      "Hello",
+    );
+    expect(
+      normalizeStreamingTranslationResponse(
+        "For short expressions, if a natural colloquial alternative is genuinely useful,",
+        false,
+      ),
+    ).toBe("");
   });
 
   it("restores code-fence structure when the model omits it", () => {

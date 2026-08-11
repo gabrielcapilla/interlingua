@@ -5,7 +5,7 @@ import { AppHeader } from "../../components/molecules/AppHeader";
 import { CustomDropdown } from "../../components/molecules/CustomDropdown";
 import { AppFooter } from "../../components/molecules/Footer";
 import { TranslationIO } from "../../components/organisms/TranslationIO";
-import { MAX_INPUT_CHARACTERS } from "../../config/constants";
+import { TRANSLATION_CONFIG } from "../../config/constants";
 import { languageOptions } from "../../data";
 import {
   useLanguageSelection,
@@ -13,6 +13,7 @@ import {
   useToast,
   useTranslation,
 } from "../../hooks";
+import { estimateTokenCount } from "../../services/translationChunking";
 import type { LanguageCode, ProcessingMode } from "../../types";
 import { createLatestRequestScheduler } from "../../utils/latestRequest";
 import {
@@ -67,9 +68,11 @@ export const TranslationPage: FC = () => {
     alternativeTranslations,
     detectedSourceLanguage,
     isTranslating,
+    translationProgress,
     translationError,
     setTranslationError,
     translateText,
+    cancelTranslation,
     setTranslatedText,
   } = useTranslation({
     selectedModel,
@@ -78,8 +81,14 @@ export const TranslationPage: FC = () => {
     mode,
   });
 
-  const isOverLimit = inputText.length > MAX_INPUT_CHARACTERS;
+  const estimatedInputTokens = useMemo(
+    () => estimateTokenCount(inputText),
+    [inputText],
+  );
+  const isLargeAutoTranslation =
+    estimatedInputTokens > TRANSLATION_CONFIG.CHUNKING.AUTO_TRANSLATE_MAX_SOURCE_TOKENS;
   const lastAutoRequestText = useRef("");
+  const previousInputTextRef = useRef(inputText);
   const translationResetKey = [mode, inputLanguage, outputLanguage, selectedModel].join(
     "\u0000",
   );
@@ -100,14 +109,15 @@ export const TranslationPage: FC = () => {
   const actionLabelLower = actionLabel.toLowerCase();
 
   const handleTranslateClick = useCallback(() => {
-    if (!inputText.trim() || !selectedModel || isTranslating || isOverLimit) return;
+    if (!inputText.trim() || !selectedModel || isTranslating) return;
     translateText(inputText);
-  }, [inputText, selectedModel, isTranslating, translateText, isOverLimit]);
+  }, [inputText, selectedModel, isTranslating, translateText]);
 
   const clearTranslation = useCallback(() => {
+    cancelTranslation();
     setTranslatedText("");
     setTranslationError(null);
-  }, [setTranslatedText, setTranslationError]);
+  }, [cancelTranslation, setTranslatedText, setTranslationError]);
 
   const handleClearInput = useCallback(() => {
     setInputText("");
@@ -125,7 +135,7 @@ export const TranslationPage: FC = () => {
     if (
       inputLanguage === "auto" &&
       selectedModel &&
-      !isOverLimit &&
+      !isLargeAutoTranslation &&
       shouldScheduleAutoTranslation(inputText, lastAutoRequestText.current)
     ) {
       const timer = setTimeout(() => {
@@ -136,7 +146,18 @@ export const TranslationPage: FC = () => {
       }, AUTO_TRANSLATE_DELAY_MS);
       return () => clearTimeout(timer);
     }
-  }, [inputText, selectedModel, inputLanguage, clearTranslation, isOverLimit]);
+  }, [
+    inputText,
+    selectedModel,
+    inputLanguage,
+    clearTranslation,
+    isLargeAutoTranslation,
+  ]);
+
+  useEffect(() => {
+    if (previousInputTextRef.current !== inputText) cancelTranslation();
+    previousInputTextRef.current = inputText;
+  }, [inputText, cancelTranslation]);
 
   useEffect(() => {
     void translationResetKey;
@@ -145,18 +166,28 @@ export const TranslationPage: FC = () => {
     autoRequestSchedulerRef.current?.clearPending();
   }, [translationResetKey, clearTranslation]);
 
-  useEffect(() => () => autoRequestSchedulerRef.current?.dispose(), []);
+  useEffect(
+    () => () => {
+      cancelTranslation();
+      autoRequestSchedulerRef.current?.dispose();
+    },
+    [cancelTranslation],
+  );
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && inputLanguage !== "auto") {
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        e.key === "Enter" &&
+        (inputLanguage !== "auto" || isLargeAutoTranslation)
+      ) {
         e.preventDefault();
         handleTranslateClick();
       }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [inputLanguage, handleTranslateClick]);
+  }, [inputLanguage, isLargeAutoTranslation, handleTranslateClick]);
 
   useEffect(() => {
     if (modelError) {
@@ -187,13 +218,6 @@ export const TranslationPage: FC = () => {
       reader.onload = (e) => {
         try {
           const text = e.target?.result as string;
-          if (text.length > MAX_INPUT_CHARACTERS) {
-            return addToast({
-              variant: "error",
-              title: "File Too Large",
-              message: `File content exceeds the character limit of ${MAX_INPUT_CHARACTERS.toLocaleString()}.`,
-            });
-          }
           setInputText(text);
           setTranslatedText("");
         } catch (error) {
@@ -373,8 +397,8 @@ export const TranslationPage: FC = () => {
           characterCount={characterCount}
           wordCount={wordCount}
           onClearInput={handleClearInput}
-          isOverLimit={isOverLimit}
-          maxCharacters={MAX_INPUT_CHARACTERS}
+          translationProgress={translationProgress}
+          onCancelTranslation={cancelTranslation}
           onCopySuccess={handleCopySuccess}
           onCopyError={handleCopyError}
           alternativeTranslations={alternativeTranslations}
@@ -412,23 +436,17 @@ export const TranslationPage: FC = () => {
             >
               {isCorrectMode ? "Correct Document" : "Translate Document"}
             </Button>
-            {hasManualSourceLanguage && (
+            {(hasManualSourceLanguage || isLargeAutoTranslation) && (
               <Button
                 variant="primary"
                 onClick={handleTranslateClick}
                 disabled={
-                  !inputText.trim() ||
-                  isTranslating ||
-                  !selectedModel ||
-                  !!modelError ||
-                  isOverLimit
+                  !inputText.trim() || isTranslating || !selectedModel || !!modelError
                 }
                 title={
-                  isOverLimit
-                    ? `Input exceeds character limit of ${MAX_INPUT_CHARACTERS.toLocaleString()}`
-                    : !selectedModel || modelError
-                      ? `A model must be selected to ${actionLabelLower}`
-                      : `${actionLabel} the input text (Ctrl+Enter)`
+                  !selectedModel || modelError
+                    ? `A model must be selected to ${actionLabelLower}`
+                    : `${actionLabel} the input text (Ctrl+Enter)`
                 }
               >
                 {actionLabel}

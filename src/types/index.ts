@@ -18,6 +18,11 @@ export type LanguageCode =
 export type ProcessingMode = "translate" | "correct";
 export type InferenceProvider = "ollama" | "llamacpp";
 
+export interface TranslationProgress {
+  completedChunks: number;
+  totalChunks: number;
+}
+
 export interface DropdownOption {
   value: string;
   label: string;
